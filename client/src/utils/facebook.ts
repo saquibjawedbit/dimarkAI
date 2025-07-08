@@ -80,7 +80,7 @@ export const loginWithFacebook = (): Promise<{
         reject(new Error('Facebook login was cancelled or failed'));
       }
     }, { 
-      scope: 'public_profile,email,ads_read',
+      scope: 'public_profile,email',
       return_scopes: true
     });
   });
