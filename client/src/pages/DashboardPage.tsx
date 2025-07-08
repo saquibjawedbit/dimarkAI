@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { AdCard } from '../components/ui/AdCard';
 import { useAuth } from '../contexts/AuthContext';
 import { AdCreative } from '../types';
+import { FacebookBusinessManager } from '../components/FacebookBusinessManager';
 
 // Mock data
 const mockAds: AdCreative[] = [
@@ -242,6 +243,11 @@ export const DashboardPage: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Facebook Business Manager */}
+        <div className="mt-8">
+          <FacebookBusinessManager />
         </div>
       </div>
     </div>

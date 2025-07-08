@@ -5,7 +5,7 @@ import { facebookService } from '../services/facebook';
 import { useUserManagement } from '../hooks/useUserManagement';
 import { useAuth as useAuthHook } from '../hooks/useAuth';
 import { LoginRequest, RegisterRequest } from '../services/api';
-import { initializeFacebookSDK, loginWithFacebook } from '../utils/facebook';
+import { initializeFacebookSDK, loginWithFacebookBusiness, getBusinessAssets } from '../utils/facebook';
 
 // Extended user interface for Facebook integration
 interface ExtendedUser extends ApiUser {
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setFacebookLoading(true);
     try {
-      const { accessToken } = await loginWithFacebook();
+      const { accessToken, businessData } = await loginWithFacebookBusiness();
       
       // Use the backend Facebook login endpoint
       await authHook.facebookLogin(accessToken);
@@ -91,15 +91,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // After successful Facebook login, get user profile
       await userManagement.refreshProfile();
 
-      // Get Facebook pages and ad accounts
-      facebookService.setAccessToken(accessToken);
-      const [pages, adAccounts] = await Promise.all([
-        facebookService.getPages(),
-        facebookService.getAdAccounts()
-      ]);
+      // Store business data if available
+      if (businessData) {
+        localStorage.setItem('facebook_business_data', JSON.stringify(businessData));
+        console.log('Facebook Business Data:', businessData);
+      }
 
-      // Store Facebook data in localStorage for now
-      localStorage.setItem('facebook_data', JSON.stringify({ pages, adAccounts }));
+      // Set Facebook service access token for future API calls
+      facebookService.setAccessToken(accessToken);
     } catch (error) {
       console.error('Facebook signup failed', error);
       throw new Error('Facebook signup failed. Please try again.');
@@ -116,16 +115,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setFacebookLoading(true);
     try {
-      const { accessToken } = await loginWithFacebook();
+      const { accessToken, businessData } = await loginWithFacebookBusiness();
       
       facebookService.setAccessToken(accessToken);
-      const [pages, adAccounts] = await Promise.all([
-        facebookService.getPages(),
-        facebookService.getAdAccounts()
-      ]);
-
-      // Store Facebook data
-      localStorage.setItem('facebook_data', JSON.stringify({ pages, adAccounts }));
+      
+      // Store business data if available
+      if (businessData) {
+        localStorage.setItem('facebook_business_data', JSON.stringify(businessData));
+        console.log('Connected Facebook Business Assets:', businessData);
+      } else {
+        // Fallback: try to get business assets separately
+        const assets = await getBusinessAssets(accessToken);
+        localStorage.setItem('facebook_business_data', JSON.stringify(assets));
+      }
     } catch (error) {
       console.error('Failed to connect Facebook page:', error);
       throw new Error('Failed to connect Facebook page. Please try again.');
