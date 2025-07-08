@@ -1,0 +1,56 @@
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+interface DatabaseConfig {
+  uri: string;
+  name: string;
+}
+
+interface JWTConfig {
+  accessTokenSecret: string;
+  refreshTokenSecret: string;
+  accessTokenExpiry: string;
+  refreshTokenExpiry: string;
+}
+
+interface ServerConfig {
+  port: number;
+  env: string;
+}
+
+interface Config {
+  server: ServerConfig;
+  database: DatabaseConfig;
+  jwt: JWTConfig;
+}
+
+export const config: Config = {
+  server: {
+    port: parseInt(process.env.PORT || '3000', 10),
+    env: process.env.NODE_ENV || 'development',
+  },
+  database: {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017',
+    name: process.env.DB_NAME || 'auth_app',
+  },
+  jwt: {
+    accessTokenSecret: process.env.JWT_ACCESS_SECRET || 'your-super-secret-access-key',
+    refreshTokenSecret: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key',
+    accessTokenExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
+    refreshTokenExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
+  },
+};
+
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+
+if (config.server.env === 'production') {
+  const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  
+  if (missingVars.length > 0) {
+    console.error('Missing required environment variables:', missingVars.join(', '));
+    process.exit(1);
+  }
+}
