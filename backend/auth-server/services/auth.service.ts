@@ -92,10 +92,14 @@ export class AuthService {
     let user = await this.userRepository.findByEmail(facebookUser.email);
     if (!user) {
       // Create new user if not exists
+      // Generate a random password for social login users (they won't use it for login)
+      const randomPassword = AuthUtil.generateRandomPassword();
+      const hashedPassword = await AuthUtil.hashPassword(randomPassword);
+      
       user = await this.userRepository.createUser({
         name: facebookUser.name,
         email: facebookUser.email,
-        password: '', // Password is not needed for social login
+        password: hashedPassword, // Hashed random password for social login
         role: 'user' // Default role for social login
       });
     }

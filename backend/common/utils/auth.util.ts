@@ -170,4 +170,26 @@ export class AuthUtil {
     }
     return result;
   }
+
+  /**
+   * Generate a secure random password for social login users
+   */
+  static generateRandomPassword(length: number = 16): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@$!%*?&';
+    let result = '';
+    
+    // Ensure at least one of each required character type
+    result += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Uppercase
+    result += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Lowercase
+    result += '0123456789'[Math.floor(Math.random() * 10)]; // Number
+    result += '@$!%*?&'[Math.floor(Math.random() * 7)]; // Special char
+    
+    // Fill the rest randomly
+    for (let i = 4; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    // Shuffle the result to avoid predictable patterns
+    return result.split('').sort(() => Math.random() - 0.5).join('');
+  }
 }
