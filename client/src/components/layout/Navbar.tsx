@@ -37,9 +37,9 @@ export const Navbar: React.FC = () => {
   ];
   
   const dashboardLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: <BarChart2 size={20} /> },
-    { name: 'Campaigns', path: '/campaigns', icon: <Rocket size={20} /> },
-    { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
+    { name: 'Dashboard', path: '/dashboard/home', icon: <BarChart2 size={20} /> },
+    { name: 'Campaigns', path: '/dashboard/campaigns', icon: <Rocket size={20} /> },
+    { name: 'Ad Creator', path: '/ad-creator', icon: <Settings size={20} /> },
   ];
   
   return (

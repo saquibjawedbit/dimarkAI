@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brain, Image, Edit3, RefreshCw, Target, Sliders, Loader, Facebook, Eye, Save, Send } from 'lucide-react';
+import { Brain, Edit3, RefreshCw, Target, Sliders, Facebook, Save, Send } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';

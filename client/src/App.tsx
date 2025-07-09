@@ -20,48 +20,70 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
       </div>
     );
   }
+
+  console.log('ProtectedRoute: isAuthenticated:', isAuthenticated);
   
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
-};
-
-const AppRoutes: React.FC = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/ad-creator" 
-        element={
-          <ProtectedRoute>
-            <AdCreatorPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
-  );
 };
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
-            <AppRoutes />
-          </main>
-          <Footer />
-        </div>
+        <Routes>
+          {/* Main layout routes */}
+          <Route path="/" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <HomePage />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/login" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <LoginPage />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/signup" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <SignupPage />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/ad-creator" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <ProtectedRoute>
+                  <AdCreatorPage />
+                </ProtectedRoute>
+              </main>
+              <Footer />
+            </div>
+          } />
+          {/* Dashboard routes - separate layout */}
+          <Route 
+            path="/dashboard/*" 
+            element={
+              <div className="min-h-screen bg-gray-50">
+                <Navbar />
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              </div>
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </Router>
     </AuthProvider>
   );

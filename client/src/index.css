@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import dashboard styles */
+@import './styles/dashboard.css';
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 font-sans;
