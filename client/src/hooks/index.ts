@@ -9,3 +9,6 @@ export type { UseUserReturn } from './useUser';
 // Combined user management hook
 export { useUserManagement } from './useUserManagement';
 export type { UseUserManagementReturn } from './useUserManagement';
+
+// Campaigns hooks
+export { useCampaigns } from './useCampaigns';

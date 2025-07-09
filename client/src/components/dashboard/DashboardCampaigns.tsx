@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Play, Pause, Edit, Trash2, Copy, MoreVertical, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { AdCard } from '../ui/AdCard';
+import { CreateCampaignModal } from '../ui/CreateCampaignModal';
 import { AdCreative } from '../../types';
+import { campaignService, Campaign as BackendCampaign } from '../../services/campaign';
 
 // Mock campaign data
 const mockCampaigns = [
@@ -255,11 +257,64 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
 };
 
 export const DashboardCampaigns: React.FC = () => {
-  const [campaigns] = useState<Campaign[]>(mockCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [ads] = useState<AdCreative[]>(mockAds);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'ads'>('campaigns');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Convert backend campaign to component campaign format
+  const mapBackendCampaign = (backendCampaign: BackendCampaign): Campaign => ({
+    id: backendCampaign._id,
+    name: backendCampaign.name,
+    status: backendCampaign.status.toLowerCase() as 'active' | 'paused' | 'draft',
+    budget: backendCampaign.dailyBudget || 0,
+    spent: backendCampaign.spend || 0,
+    impressions: backendCampaign.impressions || 0,
+    clicks: backendCampaign.clicks || 0,
+    conversions: backendCampaign.conversions || 0,
+    ctr: backendCampaign.ctr || 0,
+    cpc: backendCampaign.cpc || 0,
+    roas: backendCampaign.roas || 0,
+    startDate: backendCampaign.startTime?.split('T')[0] || new Date().toISOString().split('T')[0],
+    endDate: backendCampaign.endTime?.split('T')[0] || '',
+    adsCount: 0, // This would need to come from a separate API call
+  });
+
+  // Load campaigns from backend
+  const loadCampaigns = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await campaignService.getCampaigns({
+        page: 1,
+        limit: 50,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      });
+      
+      if (response.data) {
+        const mappedCampaigns = response.data.data.map(mapBackendCampaign);
+        setCampaigns(mappedCampaigns);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load campaigns');
+      console.error('Error loading campaigns:', err);
+      // Fallback to mock data on error
+      setCampaigns(mockCampaigns);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load campaigns on component mount
+  useEffect(() => {
+    loadCampaigns();
+  }, []);
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -271,16 +326,51 @@ export const DashboardCampaigns: React.FC = () => {
     console.log('Editing campaign:', campaign);
   };
 
-  const handleDeleteCampaign = (campaign: Campaign) => {
-    console.log('Deleting campaign:', campaign);
+  const handleDeleteCampaign = async (campaign: Campaign) => {
+    if (!window.confirm(`Are you sure you want to delete "${campaign.name}"?`)) {
+      return;
+    }
+
+    try {
+      await campaignService.deleteCampaign(campaign.id);
+      // Reload campaigns after deletion
+      await loadCampaigns();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete campaign');
+    }
   };
 
-  const handleToggleCampaignStatus = (campaign: Campaign) => {
-    console.log('Toggling campaign status:', campaign);
+  const handleToggleCampaignStatus = async (campaign: Campaign) => {
+    try {
+      if (campaign.status === 'active') {
+        await campaignService.pauseCampaign(campaign.id);
+      } else {
+        await campaignService.activateCampaign(campaign.id);
+      }
+      // Reload campaigns after status change
+      await loadCampaigns();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to update campaign status');
+    }
   };
 
-  const handleDuplicateCampaign = (campaign: Campaign) => {
-    console.log('Duplicating campaign:', campaign);
+  const handleDuplicateCampaign = async (campaign: Campaign) => {
+    try {
+      await campaignService.duplicateCampaign(campaign.id);
+      // Reload campaigns after duplication
+      await loadCampaigns();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to duplicate campaign');
+    }
+  };
+
+  const handleCreateCampaign = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleCreateSuccess = () => {
+    // Reload campaigns after creation
+    loadCampaigns();
   };
 
   const handlePublishAd = (ad: AdCreative) => {
@@ -306,7 +396,7 @@ export const DashboardCampaigns: React.FC = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Button variant="primary" leftIcon={<Plus size={16} />}>
+          <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleCreateCampaign}>
             Create Campaign
           </Button>
         </div>
@@ -417,6 +507,34 @@ export const DashboardCampaigns: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="w-8 h-8 mx-auto border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600">Loading campaigns...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={loadCampaigns}
+            className="mt-2 text-red-600 hover:text-red-800 underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* Create Campaign Modal */}
+      <CreateCampaignModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 };

@@ -17,3 +17,14 @@ export type { User, UserProfile } from './user';
 
 // Facebook Service
 export { facebookService } from './facebook';
+
+// Campaign Services
+export { campaignService } from './campaign';
+export type {
+  CreateCampaignRequest,
+  Campaign,
+  PaginatedCampaignResponse,
+  CampaignFilters,
+  BulkCampaignOperation,
+  CampaignInsights
+} from './campaign';

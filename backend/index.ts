@@ -2,7 +2,9 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './auth-server/routes/auth.routes';
+import campaignRoutes from './ads-server/routes/campaign.routes';
 import { AuthService } from './auth-server/services/auth.service';
+import { AuthMiddleware } from './auth-server/middleware/auth.middleware';
 import { DatabaseConnection, config, RedisCacheService } from './common';
 
 // Load environment variables
@@ -52,6 +54,9 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
 // Authentication routes
 app.use('/api/auth', authRoutes);
+
+// Campaign routes (protected)
+app.use('/api/campaigns', AuthMiddleware.authenticateToken, campaignRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

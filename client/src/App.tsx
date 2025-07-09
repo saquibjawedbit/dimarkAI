@@ -4,7 +4,6 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
-import { AdCreatorPage } from './pages/AdCreatorPage';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -12,7 +11,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -22,7 +21,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   console.log('ProtectedRoute: isAuthenticated:', isAuthenticated);
-  
+
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
@@ -58,21 +57,9 @@ function App() {
               </main>
               <Footer />
             </div>
-          } />
-          <Route path="/ad-creator" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
-                <ProtectedRoute>
-                  <AdCreatorPage />
-                </ProtectedRoute>
-              </main>
-              <Footer />
-            </div>
-          } />
-          {/* Dashboard routes - separate layout */}
-          <Route 
-            path="/dashboard/*" 
+          } />          {/* Dashboard routes - separate layout */}
+          <Route
+            path="/dashboard/*"
             element={
               <div className="min-h-screen bg-gray-50">
                 <Navbar />
@@ -80,7 +67,7 @@ function App() {
                   <DashboardPage />
                 </ProtectedRoute>
               </div>
-            } 
+            }
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
