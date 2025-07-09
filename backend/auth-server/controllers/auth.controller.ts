@@ -241,6 +241,86 @@ export class AuthController {
     }
 
     /**
+     * Get Facebook access token for current user
+     */
+    async getFacebookToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated'
+                });
+                return;
+            }
+
+            const token = await this.authService.getFacebookToken(req.user.userId);
+            
+            if (!token) {
+                res.status(404).json({
+                    error: 'Token not found',
+                    message: 'No Facebook access token found for this user'
+                });
+                return;
+            }
+
+            res.status(200).json({
+                message: 'Facebook token retrieved successfully',
+                data: { hasToken: true } // Don't expose the actual token for security
+            });
+        } catch (error) {
+            this.handleError(res, error);
+        }
+    }
+
+    /**
+     * Check if current user has a Facebook access token
+     */
+    async hasFacebookToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated'
+                });
+                return;
+            }
+
+            const hasToken = await this.authService.hasFacebookToken(req.user.userId);
+            
+            res.status(200).json({
+                message: 'Facebook token status retrieved',
+                data: { hasToken }
+            });
+        } catch (error) {
+            this.handleError(res, error);
+        }
+    }
+
+    /**
+     * Remove Facebook access token for current user
+     */
+    async removeFacebookToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated'
+                });
+                return;
+            }
+
+            const removed = await this.authService.removeFacebookToken(req.user.userId);
+            
+            res.status(200).json({
+                message: removed ? 'Facebook token removed successfully' : 'No Facebook token to remove',
+                data: { removed }
+            });
+        } catch (error) {
+            this.handleError(res, error);
+        }
+    }
+
+    /**
      * Central error handler
      */
     private handleError(res: Response, error: unknown): void {

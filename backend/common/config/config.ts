@@ -20,10 +20,18 @@ interface ServerConfig {
   env: string;
 }
 
+interface RedisConfig {
+  host: string;
+  port: number;
+  password?: string;
+  db?: number;
+}
+
 interface Config {
   server: ServerConfig;
   database: DatabaseConfig;
   jwt: JWTConfig;
+  redis: RedisConfig;
 }
 
 export const config: Config = {
@@ -40,6 +48,12 @@ export const config: Config = {
     refreshTokenSecret: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key',
     accessTokenExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
     refreshTokenExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
+  },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD,
+    db: parseInt(process.env.REDIS_DB || '0', 10),
   },
 };
 

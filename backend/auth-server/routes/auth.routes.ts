@@ -16,6 +16,11 @@ router.post('/logout', AuthMiddleware.authenticateToken, authController.logout.b
 router.get('/profile', AuthMiddleware.authenticateToken, authController.getProfile.bind(authController));
 router.put('/password', AuthMiddleware.authenticateToken, authController.updatePassword.bind(authController));
 
+// Facebook token management routes
+router.get('/facebook-token/status', AuthMiddleware.authenticateToken, authController.hasFacebookToken.bind(authController));
+router.get('/facebook-token', AuthMiddleware.authenticateToken, authController.getFacebookToken.bind(authController));
+router.delete('/facebook-token', AuthMiddleware.authenticateToken, authController.removeFacebookToken.bind(authController));
+
 // Admin routes (require admin role)
 router.get('/users', 
     AuthMiddleware.authenticateToken, 

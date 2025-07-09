@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './auth-server/routes/auth.routes';
 import { AuthService } from './auth-server/services/auth.service';
-import { DatabaseConnection, config } from './common';
+import { DatabaseConnection, config, RedisCacheService } from './common';
 
 // Load environment variables
 dotenv.config();
@@ -32,13 +32,21 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/api/health', (req: Request, res: Response) => {
+app.get('/api/health', async (req: Request, res: Response) => {
   const dbConnection = DatabaseConnection.getInstance();
+  const cacheService = RedisCacheService.getInstance();
+  const cacheStats = await cacheService.getStats();
+  
   res.json({
     status: 'healthy',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    database: dbConnection.isConnectionActive() ? 'connected' : 'disconnected'
+    database: dbConnection.isConnectionActive() ? 'connected' : 'disconnected',
+    cache: {
+      status: cacheService.isConnectionActive() ? 'connected' : 'disconnected',
+      entries: cacheStats.size,
+      keys: cacheStats.keys.length
+    }
   });
 });
 
@@ -69,6 +77,10 @@ async function startServer() {
     const dbConnection = DatabaseConnection.getInstance();
     await dbConnection.connect();
     
+    // Connect to Redis
+    const cacheService = RedisCacheService.getInstance();
+    await cacheService.connect();
+    
     // Initialize demo users if needed
     if (config.server.env === 'development') {
       const authService = new AuthService();
@@ -98,9 +110,16 @@ async function startServer() {
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down server...');
   try {
+    // Shutdown cache service
+    const cacheService = RedisCacheService.getInstance();
+    await cacheService.shutdown();
+    console.log('✅ Cache service shutdown');
+    
+    // Disconnect database
     const dbConnection = DatabaseConnection.getInstance();
     await dbConnection.disconnect();
     console.log('✅ Database disconnected');
+    
     process.exit(0);
   } catch (error) {
     console.error('❌ Error during shutdown:', error);

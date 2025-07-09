@@ -8,15 +8,18 @@ import {
   NotFoundError,
   RegisterRequest,
   LoginRequest,
-  AuthResponse
+  AuthResponse,
+  FacebookTokenCache
 } from '../../common';
 import { User } from '../../common/types/auth.types';
 
 export class AuthService {
   private userRepository: UserRepository;
+  private facebookTokenCache: FacebookTokenCache;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.facebookTokenCache = new FacebookTokenCache();
   }
   
   /**
@@ -86,6 +89,7 @@ export class AuthService {
 
     // Verify Facebook token and get user info
     const facebookUser = await AuthUtil.verifyFacebookToken(accessToken);
+
     if (!facebookUser) {
       throw new AuthenticationError('Invalid Facebook access token');
     }
@@ -130,6 +134,10 @@ export class AuthService {
       role: user.role
     };
     const { accessToken: newAccessToken, refreshToken } = AuthUtil.generateTokenPair(tokenPayload);
+    
+    // Store Facebook access token in cache for this user
+    await this.facebookTokenCache.setUserToken(user._id, accessToken);
+    
     // Return response without password
     const userResponse = await this.userRepository.getUserByIdWithoutPassword(user._id);
     return {
@@ -256,6 +264,27 @@ export class AuthService {
     return await this.userRepository.getAllUsersWithoutPassword();
   }
   
+  /**
+   * Get cached Facebook access token for a user
+   */
+  async getFacebookToken(userId: string): Promise<string | null> {
+    return await this.facebookTokenCache.getUserToken(userId);
+  }
+  
+  /**
+   * Check if user has a valid cached Facebook access token
+   */
+  async hasFacebookToken(userId: string): Promise<boolean> {
+    return await this.facebookTokenCache.hasUserToken(userId);
+  }
+  
+  /**
+   * Remove cached Facebook access token for a user
+   */
+  async removeFacebookToken(userId: string): Promise<boolean> {
+    return await this.facebookTokenCache.removeUserToken(userId);
+  }
+
   /**
    * Initialize with demo users (for development)
    */
