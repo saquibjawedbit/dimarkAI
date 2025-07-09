@@ -4,6 +4,7 @@ export interface User {
   email: string;
   password?: string;
   role: 'admin' | 'user';
+  adsAccountId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,6 +14,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role?: 'admin' | 'user';
+  adsAccountId?: string;
 }
 
 export interface AuthenticatedRequest extends Request {

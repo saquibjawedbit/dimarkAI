@@ -22,6 +22,13 @@ export class UserRepository extends BaseRepository<IUser> {
     });
   }
 
+  async updateAdsAccountId(userId: string, adsAccountId: string): Promise<IUser | null> {
+    return await this.update(userId, { 
+      adsAccountId,
+      updatedAt: new Date()
+    });
+  }
+
   async emailExists(email: string): Promise<boolean> {
     return await this.exists({ email: email.toLowerCase() });
   }
@@ -31,6 +38,7 @@ export class UserRepository extends BaseRepository<IUser> {
     email: string;
     password: string;
     role?: 'admin' | 'user';
+    adsAccountId?: string;
   }): Promise<IUser> {
     return await this.create({
       ...userData,
@@ -49,6 +57,7 @@ export class UserRepository extends BaseRepository<IUser> {
       name: user.name,
       email: user.email,
       role: user.role,
+      adsAccountId: user.adsAccountId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }));
@@ -67,6 +76,7 @@ export class UserRepository extends BaseRepository<IUser> {
       name: user.name,
       email: user.email,
       role: user.role,
+      adsAccountId: user.adsAccountId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };

@@ -18,21 +18,54 @@ export class AuthUtil {
       if (!response.ok) {
         throw new Error('Failed to verify Facebook token');
       }
-      const data : any = await response.json();
+      const data: any = await response.json();
       if (!data.id) {
         throw new Error('Invalid Facebook user data - missing user ID');
       }
-      
+
       // Email might not be available due to privacy settings or scope limitations
       const email = data.email || `${data.id}@facebook.temp`;
-      
+
       return {
         id: data.id,
         name: data.name || 'Facebook User',
         email: email
       };
-    } catch (error) { 
+    } catch (error) {
       throw new Error(`Facebook token verification failed: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Fetch Facebook Ads Account ID for the user
+   */
+  static async fetchFacebookAdsAccountId(token: string): Promise<string | null> {
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v19.0/me/adaccounts?access_token=${token}&fields=id,name,account_status&limit=1`
+      ); if (!response.ok) {
+        console.log(response.body);
+        console.warn('Failed to fetch Facebook Ads accounts - user might not have ads permissions');
+        return null;
+      }
+
+      const data: any = await response.json();
+
+      // Return the first active ads account ID if available
+      if (data.data && data.data.length > 0) {
+        const activeAccount = data.data.find((account: any) => account.account_status === 1);
+        if (activeAccount) {
+          // Remove 'act_' prefix if present
+          return activeAccount.id.replace('act_', '');
+        }
+        // If no active account, return the first one
+        return data.data[0].id.replace('act_', '');
+      }
+
+      return null;
+    } catch (error) {
+      console.warn('Error fetching Facebook Ads Account ID:', (error as Error).message);
+      return null;
     }
   }
 
@@ -177,18 +210,18 @@ export class AuthUtil {
   static generateRandomPassword(length: number = 16): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@$!%*?&';
     let result = '';
-    
+
     // Ensure at least one of each required character type
     result += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Uppercase
     result += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Lowercase
     result += '0123456789'[Math.floor(Math.random() * 10)]; // Number
     result += '@$!%*?&'[Math.floor(Math.random() * 7)]; // Special char
-    
+
     // Fill the rest randomly
     for (let i = 4; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     // Shuffle the result to avoid predictable patterns
     return result.split('').sort(() => Math.random() - 0.5).join('');
   }

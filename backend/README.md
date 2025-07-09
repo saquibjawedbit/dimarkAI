@@ -1,15 +1,39 @@
 # Backend Express TypeScript Server
 
-A simple Express server built with TypeScript that provides basic API endpoints.
+A robust Express server built with TypeScript that provides authentication and user management functionality with Facebook integration.
 
 ## Features
 
 - **TypeScript**: Full TypeScript support with proper type definitions
 - **Express.js**: Fast, minimalist web framework
+- **JWT Authentication**: Secure token-based authentication
+- **User Management**: Complete user registration and login system
+- **Facebook Integration**: OAuth login with Facebook
+- **Facebook Ads Account Integration**: Automatic fetching and storage of Facebook Ads Account IDs
+- **Password Security**: Bcrypt password hashing
+- **MongoDB Integration**: Mongoose ODM for database operations
 - **CORS**: Cross-Origin Resource Sharing enabled
 - **Request Logging**: Automatic logging of incoming requests
 - **Error Handling**: Centralized error handling middleware
 - **Health Check**: Endpoint to monitor server health
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Set up environment variables (see .env.example)
+cp .env.example .env
+
+# Start development server
+npm run dev
+```
+
+## Documentation
+
+- **[Facebook Ads Account Integration](./README_ADS_ACCOUNT.md)** - Detailed guide for ads account functionality
+- **[MongoDB Setup](./README_MONGODB.md)** - Database configuration guide
 
 ## API Endpoints
 

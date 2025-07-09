@@ -23,7 +23,7 @@ export class AuthService {
    * Register a new user
    */
   async register(registerData: RegisterRequest): Promise<AuthResponse> {
-    const { name, email, password, role = 'user' } = registerData;
+    const { name, email, password, role = 'user', adsAccountId } = registerData;
     
     // Validate name
     if (!name || name.trim().length < 2) {
@@ -55,7 +55,8 @@ export class AuthService {
       name: name.trim(),
       email,
       password: hashedPassword,
-      role
+      role,
+      adsAccountId
     });
     
     // Generate tokens
@@ -87,7 +88,10 @@ export class AuthService {
     const facebookUser = await AuthUtil.verifyFacebookToken(accessToken);
     if (!facebookUser) {
       throw new AuthenticationError('Invalid Facebook access token');
-    } 
+    }
+
+    // Fetch Facebook Ads Account ID
+    const adsAccountId = await AuthUtil.fetchFacebookAdsAccountId(accessToken); 
     // Check if user already exists
     let user = await this.userRepository.findByEmail(facebookUser.email);
     if (!user) {
@@ -100,9 +104,25 @@ export class AuthService {
         name: facebookUser.name,
         email: facebookUser.email,
         password: hashedPassword, // Hashed random password for social login
-        role: 'user' // Default role for social login
+        role: 'user', // Default role for social login
+        adsAccountId: adsAccountId || undefined
       });
+    } else {
+      // Update existing user's ads account ID if they don't have one and we found one
+      if (!user.adsAccountId && adsAccountId) {
+        await this.userRepository.updateAdsAccountId(user._id, adsAccountId);
+        // Refresh user data to include the updated adsAccountId
+        user = await this.userRepository.findById(user._id);
+        if (!user) {
+          throw new NotFoundError('User not found after update');
+        }
+      }
     }
+    
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    
     // Generate tokens
     const tokenPayload: JWTPayload = {
       userId: user._id,
