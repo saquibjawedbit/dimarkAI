@@ -45,7 +45,6 @@ export interface CreateAdSetRequest {
   status?: 'ACTIVE' | 'PAUSED';
   targeting: any;
   promotedObject?: any;
-  facebookAdAccountId: string;
   startTime: string;
   endTime: string;
 }

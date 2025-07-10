@@ -133,6 +133,37 @@ class CampaignService {
         return apiService.delete(`/api/adsets/${adSetId}`);
     }
     
+    // Pause ad set
+    async pauseAdSet(adSetId: string) {
+        return apiService.post(`/api/adsets/${adSetId}/pause`);
+    }
+    
+    // Activate ad set
+    async activateAdSet(adSetId: string) {
+        return apiService.post(`/api/adsets/${adSetId}/activate`);
+    }
+    
+    // Get ad set insights
+    async getAdSetInsights(adSetId: string, dateRange?: { start: string; end: string }) {
+        const queryParams = new URLSearchParams();
+        if (dateRange) {
+            queryParams.append('start', dateRange.start);
+            queryParams.append('end', dateRange.end);
+        }
+        
+        const queryString = queryParams.toString();
+        const endpoint = queryString
+            ? `/api/adsets/${adSetId}/insights?${queryString}`
+            : `/api/adsets/${adSetId}/insights`;
+            
+        return apiService.get(endpoint);
+    }
+    
+    // Sync ad sets with Facebook
+    async syncAdSetsWithFacebook(campaignId: string) {
+        return apiService.post(`/api/adsets/campaign/${campaignId}/sync`);
+    }
+    
     private readonly baseEndpoint = '/api/campaigns';
 
     // Create a new campaign

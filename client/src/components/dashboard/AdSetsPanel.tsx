@@ -29,7 +29,6 @@ interface CreateAdSetFormData {
   status: string;
   targeting: string;
   promotedObject: string;
-  facebookAdAccountId: string;
   startTime: string;
   endTime: string;
 }
@@ -55,7 +54,6 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
     status: 'ACTIVE',
     targeting: '',
     promotedObject: '',
-    facebookAdAccountId: '',
     startTime: '',
     endTime: '',
   });
@@ -101,7 +99,6 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
         status: newAdSet.status,
         targeting: newAdSet.targeting,
         promotedObject: newAdSet.promotedObject,
-        facebookAdAccountId: newAdSet.facebookAdAccountId,
         startTime: newAdSet.startTime,
         endTime: newAdSet.endTime,
       };
@@ -109,7 +106,7 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
       setShowCreateModal(false);
       setNewAdSet({
         name: '', optimizationGoal: '', billingEvent: '', bidAmount: 0, dailyBudget: 0, lifetimeBudget: 0,
-        status: 'ACTIVE', targeting: '', promotedObject: '', facebookAdAccountId: '', startTime: '', endTime: ''
+        status: 'ACTIVE', targeting: '', promotedObject: '', startTime: '', endTime: ''
       });
     } catch (err: any) {
       setCreateError(err?.message || 'Failed to create ad set');
@@ -231,9 +228,10 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Promoted Object (JSON)</label>
                   <textarea className="w-full border rounded-lg px-4 py-2" value={newAdSet.promotedObject} onChange={e => setNewAdSet({ ...newAdSet, promotedObject: e.target.value })} rows={2} />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Facebook Ad Account ID</label>
-                  <input type="text" className="w-full border rounded-lg px-4 py-2" value={newAdSet.facebookAdAccountId} onChange={e => setNewAdSet({ ...newAdSet, facebookAdAccountId: e.target.value })} required />
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> Facebook Ad Account ID will be automatically fetched from your user profile.
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

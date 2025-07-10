@@ -226,6 +226,215 @@ export class FacebookMarketingAPI {
       throw new Error(`Failed to fetch targeting options: ${error}`);
     }
   }
+
+  /**
+   * Create an ad set on Facebook
+   */
+  async createAdSet(adAccountId: string, adSetData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/act_${adAccountId}/adsets`;
+      const response: AxiosResponse = await axios.post(url, {
+        name: adSetData.name,
+        campaign_id: adSetData.campaign_id,
+        optimization_goal: adSetData.optimization_goal,
+        billing_event: adSetData.billing_event,
+        bid_amount: adSetData.bid_amount,
+        daily_budget: adSetData.daily_budget,
+        lifetime_budget: adSetData.lifetime_budget,
+        status: adSetData.status || 'PAUSED',
+        targeting: adSetData.targeting,
+        promoted_object: adSetData.promoted_object,
+        start_time: adSetData.start_time,
+        end_time: adSetData.end_time,
+        access_token: this.accessToken,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to create Facebook ad set: ${error}`);
+    }
+  }
+
+  /**
+   * Update an ad set on Facebook
+   */
+  async updateAdSet(adSetId: string, updateData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adSetId}`;
+      const updateParams: any = {
+        access_token: this.accessToken,
+      };
+
+      if (updateData.name) updateParams.name = updateData.name;
+      if (updateData.status) updateParams.status = updateData.status;
+      if (updateData.optimization_goal) updateParams.optimization_goal = updateData.optimization_goal;
+      if (updateData.billing_event) updateParams.billing_event = updateData.billing_event;
+      if (updateData.bid_amount) updateParams.bid_amount = updateData.bid_amount;
+      if (updateData.daily_budget) updateParams.daily_budget = updateData.daily_budget;
+      if (updateData.lifetime_budget) updateParams.lifetime_budget = updateData.lifetime_budget;
+      if (updateData.targeting) updateParams.targeting = updateData.targeting;
+      if (updateData.promoted_object) updateParams.promoted_object = updateData.promoted_object;
+      if (updateData.start_time) updateParams.start_time = updateData.start_time;
+      if (updateData.end_time) updateParams.end_time = updateData.end_time;
+
+      const response: AxiosResponse = await axios.post(url, updateParams);
+      return response.data;
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to update Facebook ad set: ${error}`);
+    }
+  }
+
+  /**
+   * Delete an ad set on Facebook
+   */
+  async deleteAdSet(adSetId: string): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adSetId}`;
+      const response: AxiosResponse = await axios.post(url, {
+        status: 'DELETED',
+        access_token: this.accessToken,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to delete Facebook ad set: ${error}`);
+    }
+  }
+
+  /**
+   * Get ad sets from Facebook campaign
+   */
+  async getAdSets(campaignId: string, fields?: string[]): Promise<any> {
+    try {
+      const defaultFields = [
+        'id',
+        'name',
+        'campaign_id',
+        'optimization_goal',
+        'billing_event',
+        'bid_amount',
+        'daily_budget',
+        'lifetime_budget',
+        'status',
+        'targeting',
+        'promoted_object',
+        'start_time',
+        'end_time',
+        'created_time',
+        'updated_time'
+      ];
+
+      const url = `${this.baseURL}/${campaignId}/adsets`;
+      const response: AxiosResponse = await axios.get(url, {
+        params: {
+          fields: (fields || defaultFields).join(','),
+          access_token: this.accessToken,
+        },
+      });
+
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to fetch Facebook ad sets: ${error}`);
+    }
+  }
+
+  /**
+   * Get ad set by ID from Facebook
+   */
+  async getAdSetById(adSetId: string, fields?: string[]): Promise<any> {
+    try {
+      const defaultFields = [
+        'id',
+        'name',
+        'campaign_id',
+        'optimization_goal',
+        'billing_event',
+        'bid_amount',
+        'daily_budget',
+        'lifetime_budget',
+        'status',
+        'targeting',
+        'promoted_object',
+        'start_time',
+        'end_time',
+        'created_time',
+        'updated_time'
+      ];
+
+      const url = `${this.baseURL}/${adSetId}`;
+      const response: AxiosResponse = await axios.get(url, {
+        params: {
+          fields: (fields || defaultFields).join(','),
+          access_token: this.accessToken,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to fetch Facebook ad set: ${error}`);
+    }
+  }
+
+  /**
+   * Get ad set insights from Facebook
+   */
+  async getAdSetInsights(
+    adSetId: string, 
+    dateRange?: { start: string; end: string },
+    fields?: string[]
+  ): Promise<any> {
+    try {
+      const defaultFields = [
+        'impressions',
+        'clicks',
+        'spend',
+        'conversions',
+        'ctr',
+        'cpc',
+        'cpm',
+        'frequency',
+        'reach'
+      ];
+
+      const url = `${this.baseURL}/${adSetId}/insights`;
+      const params: any = {
+        fields: (fields || defaultFields).join(','),
+        access_token: this.accessToken,
+      };
+
+      if (dateRange) {
+        params.time_range = JSON.stringify({
+          since: dateRange.start,
+          until: dateRange.end,
+        });
+      }
+
+      const response: AxiosResponse = await axios.get(url, { params });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to fetch Facebook ad set insights: ${error}`);
+    }
+  }
+
+  /**
+   * Pause an ad set on Facebook
+   */
+  async pauseAdSet(adSetId: string): Promise<any> {
+    return this.updateAdSet(adSetId, { status: 'PAUSED' });
+  }
+
+  /**
+   * Activate an ad set on Facebook
+   */
+  async activateAdSet(adSetId: string): Promise<any> {
+    return this.updateAdSet(adSetId, { status: 'ACTIVE' });
+  }
 }
 
 /**
