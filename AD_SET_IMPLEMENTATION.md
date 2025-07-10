@@ -29,10 +29,36 @@
 - **Name**: Required, non-empty
 - **Optimization Goal**: Required selection
 - **Billing Event**: Required selection
+- **Bid Strategy**: Required selection (LOWEST_COST_WITHOUT_CAP, LOWEST_COST_WITH_BID_CAP, COST_CAP, LOWEST_COST_WITH_MIN_ROAS)
+- **Bid Amount**: Required for LOWEST_COST_WITH_BID_CAP and COST_CAP strategies, forbidden for LOWEST_COST_WITHOUT_CAP
 - **Budget**: Either daily (min $1) OR lifetime (min $10), not both
 - **Dates**: Start time must be before end time
 - **Targeting**: Must be valid JSON with required fields
 - **Promoted Object**: Optional, but if provided must not contain placeholders
+
+## Latest Updates - Bid Strategy Implementation
+
+### Fixed Facebook API Error
+- **Issue**: "Bid amount can't be set For LOWEST_COST_WITHOUT_CAP bid strategy"
+- **Solution**: Added proper bid strategy validation in both frontend and backend
+
+### Frontend Changes
+- Added bid strategy dropdown with 4 options: LOWEST_COST_WITHOUT_CAP, LOWEST_COST_WITH_BID_CAP, COST_CAP, LOWEST_COST_WITH_MIN_ROAS
+- Bid amount field is disabled when LOWEST_COST_WITHOUT_CAP is selected
+- Smart form validation prevents conflicting bid amount/strategy combinations
+- Added informational boxes explaining each bid strategy
+
+### Backend Changes
+- Updated AdSet model to include `bidStrategy` field with default value
+- Enhanced validation in AdSetService to check bid strategy vs bid amount compatibility
+- Updated Facebook API utility to properly handle bid strategy validation
+- Added proper error messages for invalid bid strategy/amount combinations
+
+### Validation Logic
+- **LOWEST_COST_WITHOUT_CAP**: No bid amount allowed (Facebook handles optimization)
+- **LOWEST_COST_WITH_BID_CAP**: Bid amount required (sets maximum bid)
+- **COST_CAP**: Bid amount required (controls average cost per result)
+- **LOWEST_COST_WITH_MIN_ROAS**: Bid amount optional (minimum return on ad spend)
 
 ## Key Features
 
@@ -46,8 +72,9 @@
     "publisher_platforms": ["facebook"],
     "facebook_positions": ["feed"]
   },
+  "bidStrategy": "LOWEST_COST_WITHOUT_CAP",
   "dailyBudget": 10,
-  "bidAmount": 0.5,
+  "bidAmount": 0,
   "status": "PAUSED"
 }
 ```
@@ -66,9 +93,20 @@
 Create an ad set with these settings to test:
 - **Name**: "Test Ad Set"
 - **Optimization Goal**: "LINK_CLICKS"
-- **Billing Event**: "LINK_CLICKS"  
+- **Billing Event**: "LINK_CLICKS"
+- **Bid Strategy**: "LOWEST_COST_WITHOUT_CAP" (no bid amount needed)
 - **Daily Budget**: $10
+- **Status**: "PAUSED"
+- **Targeting**: Use the default JSON provided
+- **Promoted Object**: Leave empty
+
+Or test with bid cap:
+- **Name**: "Test Ad Set with Bid Cap"
+- **Optimization Goal**: "LINK_CLICKS"
+- **Billing Event**: "LINK_CLICKS"
+- **Bid Strategy**: "LOWEST_COST_WITH_BID_CAP"
 - **Bid Amount**: $0.50
+- **Daily Budget**: $10
 - **Status**: "PAUSED"
 - **Targeting**: Use the default JSON provided
 - **Promoted Object**: Leave empty

@@ -301,9 +301,32 @@ export class FacebookMarketingAPI {
         payload.lifetime_budget = adSetData.lifetime_budget;
       }
 
-      // Add bid amount if provided
-      if (adSetData.bid_amount) {
-        payload.bid_amount = adSetData.bid_amount;
+      // Add bid strategy and amount based on strategy
+      if (adSetData.bid_strategy) {
+        payload.bid_strategy = adSetData.bid_strategy;
+        
+        // Validate bid amount based on strategy
+        if (adSetData.bid_strategy === 'LOWEST_COST_WITHOUT_CAP') {
+          // No bid amount should be set for this strategy
+          if (adSetData.bid_amount) {
+            throw new Error('Bid amount cannot be set with LOWEST_COST_WITHOUT_CAP strategy');
+          }
+        } else if (adSetData.bid_strategy === 'LOWEST_COST_WITH_BID_CAP' || 
+                   adSetData.bid_strategy === 'COST_CAP') {
+          // Bid amount is required for these strategies
+          if (!adSetData.bid_amount) {
+            throw new Error(`Bid amount is required for bid strategy: ${adSetData.bid_strategy}`);
+          }
+          payload.bid_amount = adSetData.bid_amount;
+        } else if (adSetData.bid_strategy === 'LOWEST_COST_WITH_MIN_ROAS') {
+          // Bid amount is optional for this strategy
+          if (adSetData.bid_amount) {
+            payload.bid_amount = adSetData.bid_amount;
+          }
+        }
+      } else {
+        // Default to LOWEST_COST_WITHOUT_CAP if no strategy provided
+        payload.bid_strategy = 'LOWEST_COST_WITHOUT_CAP';
       }
 
       // Add promoted object if provided and valid

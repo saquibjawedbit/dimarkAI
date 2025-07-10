@@ -65,9 +65,31 @@ export class AdSetService {
           end_time: adSetData.endTime,
         };
 
-        // Handle bid amount
-        if (adSetData.bidAmount && adSetData.bidAmount > 0) {
-          facebookAdSetData.bid_amount = Math.round(adSetData.bidAmount * 100);
+        // Handle bid strategy and bid amount
+        if (adSetData.bidStrategy) {
+          facebookAdSetData.bid_strategy = adSetData.bidStrategy;
+          
+          // Only set bid amount for strategies that require it
+          if (adSetData.bidStrategy === 'LOWEST_COST_WITH_BID_CAP' || 
+              adSetData.bidStrategy === 'COST_CAP') {
+            if (!adSetData.bidAmount || adSetData.bidAmount <= 0) {
+              throw new Error(`Bid amount is required for bid strategy: ${adSetData.bidStrategy}`);
+            }
+            facebookAdSetData.bid_amount = Math.round(adSetData.bidAmount * 100);
+          } else if (adSetData.bidStrategy === 'LOWEST_COST_WITHOUT_CAP') {
+            // No bid amount should be set for this strategy
+            if (adSetData.bidAmount && adSetData.bidAmount > 0) {
+              throw new Error('Bid amount cannot be set with LOWEST_COST_WITHOUT_CAP strategy');
+            }
+          } else if (adSetData.bidStrategy === 'LOWEST_COST_WITH_MIN_ROAS') {
+            // This strategy might require bid amount or ROAS target
+            if (adSetData.bidAmount && adSetData.bidAmount > 0) {
+              facebookAdSetData.bid_amount = Math.round(adSetData.bidAmount * 100);
+            }
+          }
+        } else {
+          // Default to LOWEST_COST_WITHOUT_CAP if no strategy provided
+          facebookAdSetData.bid_strategy = 'LOWEST_COST_WITHOUT_CAP';
         }
 
         // Handle budget - only use ONE budget type (daily OR lifetime, not both)

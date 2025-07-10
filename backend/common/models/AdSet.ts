@@ -7,6 +7,7 @@ export interface IAdSet extends Document {
   name: string;
   optimizationGoal: string;
   billingEvent: string;
+  bidStrategy: string;
   bidAmount: number;
   dailyBudget?: number;
   lifetimeBudget?: number;
@@ -28,6 +29,7 @@ const AdSetSchema = new Schema<IAdSet>({
   name: { type: String, required: true },
   optimizationGoal: { type: String, required: true },
   billingEvent: { type: String, required: true },
+  bidStrategy: { type: String, required: true, default: 'LOWEST_COST_WITHOUT_CAP' },
   bidAmount: { type: Number, required: true },
   dailyBudget: { type: Number },
   lifetimeBudget: { type: Number },
