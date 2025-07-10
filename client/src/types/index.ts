@@ -55,11 +55,19 @@ export interface AdCreative {
   facebookAdAccountId?: string;
 }
 
+export type CampaignObjective = 
+  | 'OUTCOME_LEADS'
+  | 'OUTCOME_SALES'
+  | 'OUTCOME_ENGAGEMENT'
+  | 'OUTCOME_AWARENESS'
+  | 'OUTCOME_TRAFFIC'
+  | 'OUTCOME_APP_PROMOTION';
+
 export interface Campaign {
   id: string;
   userId: string;
   name: string;
-  objective: string;
+  objective: CampaignObjective;
   budget: number;
   startDate: string;
   endDate?: string;

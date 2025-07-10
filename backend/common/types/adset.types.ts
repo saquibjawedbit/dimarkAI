@@ -34,11 +34,18 @@ export type BillingEvent =
   | 'PURCHASE'
   | 'LISTING_INTERACTION';
 
+export type BidStrategy =
+  | 'LOWEST_COST_WITHOUT_CAP'
+  | 'LOWEST_COST_WITH_BID_CAP'
+  | 'COST_CAP'
+  | 'LOWEST_COST_WITH_MIN_ROAS';
+
 export interface CreateAdSetRequest {
   campaignId: string;
   name: string;
   optimizationGoal: OptimizationGoal;
   billingEvent: BillingEvent;
+  bidStrategy: BidStrategy;
   bidAmount: number;
   dailyBudget?: number;
   lifetimeBudget?: number;
@@ -53,6 +60,7 @@ export interface UpdateAdSetRequest {
   name?: string;
   optimizationGoal?: OptimizationGoal;
   billingEvent?: BillingEvent;
+  bidStrategy?: BidStrategy;
   bidAmount?: number;
   dailyBudget?: number;
   lifetimeBudget?: number;

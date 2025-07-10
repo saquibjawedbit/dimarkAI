@@ -39,6 +39,7 @@ export interface JWTPayload {
   role: 'admin' | 'user';
   iat?: number;
   exp?: number;
+  adsAccountId?: string | null; // Optional, can be null if not available
 }
 
 export interface PasswordValidationResult {

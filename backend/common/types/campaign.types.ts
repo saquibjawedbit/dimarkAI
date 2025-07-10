@@ -1,7 +1,15 @@
 // Campaign-specific types
+export type CampaignObjective = 
+  | 'OUTCOME_LEADS'
+  | 'OUTCOME_SALES'
+  | 'OUTCOME_ENGAGEMENT'
+  | 'OUTCOME_AWARENESS'
+  | 'OUTCOME_TRAFFIC'
+  | 'OUTCOME_APP_PROMOTION';
+
 export interface CreateCampaignRequest {
   name: string;
-  objective: string;
+  objective: CampaignObjective;
   status?: 'ACTIVE' | 'PAUSED';
   dailyBudget?: number;
   lifetimeBudget?: number;
@@ -40,10 +48,12 @@ export interface CreateCampaignRequest {
     languages?: number[];
   };
   facebookAdAccountId: string;
+  specialAdCategories?: ('HOUSING' | 'EMPLOYMENT' | 'CREDIT' | 'ISSUES_ELECTIONS_POLITICS')[];
 }
 
 export interface UpdateCampaignRequest {
   name?: string;
+  objective?: CampaignObjective;
   status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
   dailyBudget?: number;
   lifetimeBudget?: number;
@@ -86,7 +96,7 @@ export interface UpdateCampaignRequest {
 export interface FacebookCampaignResponse {
   id: string;
   name: string;
-  objective: string;
+  objective: CampaignObjective;
   status: string;
   daily_budget?: string;
   lifetime_budget?: string;
@@ -114,7 +124,7 @@ export interface CampaignInsights {
 
 export interface CampaignFilters {
   status?: 'ACTIVE' | 'PAUSED' | 'DELETED' | 'ARCHIVED';
-  objective?: string;
+  objective?: CampaignObjective;
   startDate?: string;
   endDate?: string;
   facebookAdAccountId?: string;

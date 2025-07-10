@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { OPTIMIZATION_GOALS } from '../../constants/optimizationGoals';
 import { BILLING_EVENTS } from '../../constants/billingEvents';
+import { BID_STRATEGIES } from '../../constants/bidStrategies';
 import { Button } from '../ui/Button';
 import { campaignService } from '../../services/campaign';
 import { Plus } from 'lucide-react';
@@ -24,6 +25,7 @@ interface CreateAdSetFormData {
   optimizationGoal: string;
   billingEvent: string;
   bidAmount: number;
+  bidStrategy: string;
   dailyBudget: number;
   lifetimeBudget: number;
   status: string;
@@ -39,6 +41,88 @@ interface AdSetsPanelProps {
   onClose: () => void;
 }
 
+// Validation functions
+const validateAdSetForm = (formData: CreateAdSetFormData): string[] => {
+  const errors: string[] = [];
+
+  // Required fields
+  if (!formData.name.trim()) {
+    errors.push('Ad set name is required');
+  }
+  if (!formData.optimizationGoal) {
+    errors.push('Optimization goal is required');
+  }
+  if (!formData.billingEvent) {
+    errors.push('Billing event is required');
+  }
+  if (!formData.startTime) {
+    errors.push('Start time is required');
+  }
+  if (!formData.endTime) {
+    errors.push('End time is required');
+  }
+
+  // Budget validation
+  if (formData.dailyBudget <= 0 && formData.lifetimeBudget <= 0) {
+    errors.push('Either daily budget or lifetime budget must be greater than 0');
+  }
+  if (formData.dailyBudget > 0 && formData.lifetimeBudget > 0) {
+    errors.push('Choose either daily budget OR lifetime budget, not both');
+  }
+  if (formData.dailyBudget > 0 && formData.dailyBudget < 1) {
+    errors.push('Daily budget must be at least $1');
+  }
+  if (formData.lifetimeBudget > 0 && formData.lifetimeBudget < 10) {
+    errors.push('Lifetime budget must be at least $10');
+  }
+
+  // Bid amount validation based on strategy
+  if (formData.bidStrategy === 'LOWEST_COST_WITHOUT_CAP' && formData.bidAmount > 0) {
+    errors.push('Bid amount cannot be set with "LOWEST_COST_WITHOUT_CAP" strategy');
+  }
+  if ((formData.bidStrategy === 'LOWEST_COST_WITH_BID_CAP' || formData.bidStrategy === 'COST_CAP') && formData.bidAmount <= 0) {
+    errors.push('Bid amount is required for "LOWEST_COST_WITH_BID_CAP" and "COST_CAP" strategies');
+  }
+  if (formData.bidAmount < 0) {
+    errors.push('Bid amount cannot be negative');
+  }
+
+  // Date validation
+  if (formData.startTime && formData.endTime) {
+    const start = new Date(formData.startTime);
+    const end = new Date(formData.endTime);
+    if (end <= start) {
+      errors.push('End time must be after start time');
+    }
+  }
+
+  // Targeting validation
+  if (formData.targeting.trim()) {
+    try {
+      const targeting = JSON.parse(formData.targeting);
+      if (!targeting.geo_locations || !targeting.geo_locations.countries) {
+        errors.push('Targeting must include geo_locations with countries');
+      }
+    } catch (e) {
+      errors.push('Targeting must be valid JSON');
+    }
+  }
+
+  // Promoted object validation (if provided)
+  if (formData.promotedObject.trim()) {
+    try {
+      const promotedObj = JSON.parse(formData.promotedObject);
+      if (promotedObj.page_id && (promotedObj.page_id.includes('<') || promotedObj.page_id.includes('>'))) {
+        errors.push('Promoted object contains placeholder values. Use real IDs or leave empty.');
+      }
+    } catch (e) {
+      errors.push('Promoted object must be valid JSON');
+    }
+  }
+
+  return errors;
+};
+
 export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignName, onClose }) => {
   const [adSets, setAdSets] = useState<AdSet[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,14 +132,21 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
     name: '',
     optimizationGoal: '',
     billingEvent: '',
-    bidAmount: 0,
-    dailyBudget: 0,
-    lifetimeBudget: 0,
-    status: 'ACTIVE',
-    targeting: '',
+    bidAmount: 0, // Will be controlled by bid strategy
+    bidStrategy: 'LOWEST_COST_WITHOUT_CAP', // Default strategy
+    dailyBudget: 10, // Default $10/day
+    lifetimeBudget: 0, // Start with 0 so only daily is used
+    status: 'PAUSED', // Always start paused for safety
+    targeting: JSON.stringify({
+      geo_locations: { countries: ["US"] },
+      age_min: 18,
+      age_max: 65,
+      publisher_platforms: ["facebook"],
+      facebook_positions: ["feed"]
+    }, null, 2),
     promotedObject: '',
-    startTime: '',
-    endTime: '',
+    startTime: new Date().toISOString().slice(0, 16), // Current date/time
+    endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // 30 days from now
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -86,27 +177,57 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
     e.preventDefault();
     setCreating(true);
     setCreateError(null);
+
+    // Validate form data
+    const validationErrors = validateAdSetForm(newAdSet);
+    if (validationErrors.length > 0) {
+      setCreateError(validationErrors.join('. '));
+      setCreating(false);
+      return;
+    }
+
     try {
       // Compose payload according to CreateAdSetRequest
       const payload = {
         campaignId,
-        name: newAdSet.name,
+        name: newAdSet.name.trim(),
         optimizationGoal: newAdSet.optimizationGoal,
         billingEvent: newAdSet.billingEvent,
+        bidStrategy: newAdSet.bidStrategy,
         bidAmount: Number(newAdSet.bidAmount),
-        dailyBudget: Number(newAdSet.dailyBudget),
-        lifetimeBudget: Number(newAdSet.lifetimeBudget),
+        dailyBudget: newAdSet.dailyBudget > 0 ? Number(newAdSet.dailyBudget) : 0,
+        lifetimeBudget: newAdSet.lifetimeBudget > 0 ? Number(newAdSet.lifetimeBudget) : 0,
         status: newAdSet.status,
-        targeting: newAdSet.targeting,
-        promotedObject: newAdSet.promotedObject,
+        targeting: newAdSet.targeting.trim(),
+        promotedObject: newAdSet.promotedObject.trim(),
         startTime: newAdSet.startTime,
         endTime: newAdSet.endTime,
       };
+
+      console.log('Creating ad set with payload:', payload);
       await campaignService.createAdSet(campaignId, payload);
+      
       setShowCreateModal(false);
+      // Reset form to defaults
       setNewAdSet({
-        name: '', optimizationGoal: '', billingEvent: '', bidAmount: 0, dailyBudget: 0, lifetimeBudget: 0,
-        status: 'ACTIVE', targeting: '', promotedObject: '', startTime: '', endTime: ''
+        name: '',
+        optimizationGoal: '',
+        billingEvent: '',
+        bidAmount: 0,
+        bidStrategy: 'LOWEST_COST_WITHOUT_CAP',
+        dailyBudget: 10,
+        lifetimeBudget: 0,
+        status: 'PAUSED',
+        targeting: JSON.stringify({
+          geo_locations: { countries: ["US"] },
+          age_min: 18,
+          age_max: 65,
+          publisher_platforms: ["facebook"],
+          facebook_positions: ["feed"]
+        }, null, 2),
+        promotedObject: '',
+        startTime: new Date().toISOString().slice(0, 16),
+        endTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
       });
     } catch (err: any) {
       setCreateError(err?.message || 'Failed to create ad set');
@@ -197,50 +318,158 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Bid Amount</label>
-                    <input type="number" className="w-full border rounded-lg px-4 py-2" value={newAdSet.bidAmount} onChange={e => setNewAdSet({ ...newAdSet, bidAmount: Number(e.target.value) })} min={0} required />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Bid Strategy</label>
+                    <select 
+                      className="w-full border rounded-lg px-4 py-2" 
+                      value={newAdSet.bidStrategy} 
+                      onChange={e => setNewAdSet({ 
+                        ...newAdSet, 
+                        bidStrategy: e.target.value,
+                        // Reset bid amount when strategy changes
+                        bidAmount: e.target.value === 'LOWEST_COST_WITHOUT_CAP' ? 0 : newAdSet.bidAmount
+                      })} 
+                      required
+                    >
+                      {BID_STRATEGIES.map(strategy => (
+                        <option key={strategy.value} value={strategy.value}>{strategy.label}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Choose bidding strategy</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Daily Budget</label>
-                    <input type="number" className="w-full border rounded-lg px-4 py-2" value={newAdSet.dailyBudget} onChange={e => setNewAdSet({ ...newAdSet, dailyBudget: Number(e.target.value) })} min={0} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Lifetime Budget</label>
-                    <input type="number" className="w-full border rounded-lg px-4 py-2" value={newAdSet.lifetimeBudget} onChange={e => setNewAdSet({ ...newAdSet, lifetimeBudget: Number(e.target.value) })} min={0} />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Bid Amount ($)
+                      {newAdSet.bidStrategy === 'LOWEST_COST_WITHOUT_CAP' && (
+                        <span className="text-xs text-gray-500 ml-1">(disabled)</span>
+                      )}
+                    </label>
+                    <input 
+                      type="number" 
+                      className={`w-full border rounded-lg px-4 py-2 ${
+                        newAdSet.bidStrategy === 'LOWEST_COST_WITHOUT_CAP' 
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                          : ''
+                      }`} 
+                      value={newAdSet.bidAmount} 
+                      onChange={e => setNewAdSet({ ...newAdSet, bidAmount: Number(e.target.value) })} 
+                      min={0}
+                      step={0.01}
+                      placeholder="0.50"
+                      disabled={newAdSet.bidStrategy === 'LOWEST_COST_WITHOUT_CAP'}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {newAdSet.bidStrategy === 'LOWEST_COST_WITHOUT_CAP' 
+                        ? 'No bid cap with this strategy' 
+                        : 'Required for bid cap strategies'
+                      }
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
                     <select className="w-full border rounded-lg px-4 py-2" value={newAdSet.status} onChange={e => setNewAdSet({ ...newAdSet, status: e.target.value })}>
+                      <option value="PAUSED">Paused (Recommended)</option>
                       <option value="ACTIVE">Active</option>
-                      <option value="PAUSED">Paused</option>
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">Start paused for safety</p>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Targeting (JSON)</label>
-                  <textarea className="w-full border rounded-lg px-4 py-2" value={newAdSet.targeting} onChange={e => setNewAdSet({ ...newAdSet, targeting: e.target.value })} rows={2} required />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Promoted Object (JSON)</label>
-                  <textarea className="w-full border rounded-lg px-4 py-2" value={newAdSet.promotedObject} onChange={e => setNewAdSet({ ...newAdSet, promotedObject: e.target.value })} rows={2} />
-                </div>
+                
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                   <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> Facebook Ad Account ID will be automatically fetched from your user profile.
+                    <strong>Bid Strategy:</strong> 
+                    <br />• <strong>Lowest Cost (No Cap):</strong> Facebook optimizes for lowest cost without bid limits
+                    <br />• <strong>Lowest Cost (Bid Cap):</strong> Set maximum bid amount Facebook can use
+                    <br />• <strong>Cost Cap:</strong> Control average cost per optimization event
                   </p>
                 </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-yellow-700">
+                    <strong>Budget:</strong> Choose either Daily OR Lifetime budget, not both.
+                  </p>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
-                    <input type="date" className="w-full border rounded-lg px-4 py-2" value={newAdSet.startTime} onChange={e => setNewAdSet({ ...newAdSet, startTime: e.target.value })} required />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Daily Budget ($)</label>
+                    <input 
+                      type="number" 
+                      className="w-full border rounded-lg px-4 py-2" 
+                      value={newAdSet.dailyBudget} 
+                      onChange={e => setNewAdSet({ 
+                        ...newAdSet, 
+                        dailyBudget: Number(e.target.value),
+                        lifetimeBudget: Number(e.target.value) > 0 ? 0 : newAdSet.lifetimeBudget
+                      })} 
+                      min={0}
+                      placeholder="10"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Minimum $1</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
-                    <input type="date" className="w-full border rounded-lg px-4 py-2" value={newAdSet.endTime} onChange={e => setNewAdSet({ ...newAdSet, endTime: e.target.value })} required />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Lifetime Budget ($)</label>
+                    <input 
+                      type="number" 
+                      className="w-full border rounded-lg px-4 py-2" 
+                      value={newAdSet.lifetimeBudget} 
+                      onChange={e => setNewAdSet({ 
+                        ...newAdSet, 
+                        lifetimeBudget: Number(e.target.value),
+                        dailyBudget: Number(e.target.value) > 0 ? 0 : newAdSet.dailyBudget
+                      })} 
+                      min={0}
+                      placeholder="300"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Minimum $10</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Targeting (JSON)</label>
+                  <textarea 
+                    className="w-full border rounded-lg px-4 py-2 font-mono text-sm" 
+                    value={newAdSet.targeting} 
+                    onChange={e => setNewAdSet({ ...newAdSet, targeting: e.target.value })} 
+                    rows={4}
+                    placeholder='{"geo_locations": {"countries": ["US"]}, "age_min": 18, "age_max": 65}'
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Must include geo_locations and age targeting</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Promoted Object (JSON) - Optional</label>
+                  <textarea 
+                    className="w-full border rounded-lg px-4 py-2 font-mono text-sm" 
+                    value={newAdSet.promotedObject} 
+                    onChange={e => setNewAdSet({ ...newAdSet, promotedObject: e.target.value })} 
+                    rows={2}
+                    placeholder='{"page_id": "your_page_id"} or leave empty'
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Leave empty for dummy data. No placeholder values like &lt;PAGE_ID&gt;</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date & Time</label>
+                    <input 
+                      type="datetime-local" 
+                      className="w-full border rounded-lg px-4 py-2" 
+                      value={newAdSet.startTime} 
+                      onChange={e => setNewAdSet({ ...newAdSet, startTime: e.target.value })} 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">End Date & Time</label>
+                    <input 
+                      type="datetime-local" 
+                      className="w-full border rounded-lg px-4 py-2" 
+                      value={newAdSet.endTime} 
+                      onChange={e => setNewAdSet({ ...newAdSet, endTime: e.target.value })} 
+                      required 
+                    />
                   </div>
                 </div>
                 {createError && <div className="text-red-600 text-sm font-semibold">{createError}</div>}

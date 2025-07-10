@@ -3,29 +3,13 @@ import { X, Target, DollarSign, Settings } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { campaignService, CreateCampaignRequest } from '../../services/campaign';
+import { CAMPAIGN_OBJECTIVES } from '../../constants/campaign';
 
 interface CreateCampaignModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const CAMPAIGN_OBJECTIVES = [
-  { value: 'AWARENESS', label: 'Brand Awareness' },
-  { value: 'TRAFFIC', label: 'Website Traffic' },
-  { value: 'ENGAGEMENT', label: 'Post Engagement' },
-  { value: 'LEADS', label: 'Lead Generation' },
-  { value: 'APP_INSTALLS', label: 'App Installs' },
-  { value: 'SALES', label: 'Sales & Conversions' },
-  { value: 'LINK_CLICKS', label: 'Link Clicks' },
-  { value: 'POST_ENGAGEMENT', label: 'Post Engagement' },
-  { value: 'PAGE_LIKES', label: 'Page Likes' },
-  { value: 'EVENT_RESPONSES', label: 'Event Responses' },
-  { value: 'MESSAGES', label: 'Messages' },
-  { value: 'CONVERSIONS', label: 'Conversions' },
-  { value: 'CATALOG_SALES', label: 'Catalog Sales' },
-  { value: 'STORE_TRAFFIC', label: 'Store Traffic' },
-];
 
 const BID_STRATEGIES = [
   { value: 'LOWEST_COST_WITHOUT_CAP', label: 'Lowest Cost (Automatic)' },
@@ -45,7 +29,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   
   const [formData, setFormData] = useState<CreateCampaignRequest>({
     name: '',
-    objective: 'LINK_CLICKS',
+    objective: 'OUTCOME_TRAFFIC',
     status: 'PAUSED',
     dailyBudget: 50,
     bidStrategy: 'LOWEST_COST_WITHOUT_CAP',
@@ -98,7 +82,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         // Reset form
         setFormData({
           name: '',
-          objective: 'LINK_CLICKS',
+          objective: 'OUTCOME_TRAFFIC',
           status: 'PAUSED',
           dailyBudget: 50,
           bidStrategy: 'LOWEST_COST_WITHOUT_CAP',
@@ -138,7 +122,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return formData.name.trim() !== '' && formData.objective !== '';
+        return formData.name.trim() !== '' && formData.objective;
       case 2:
         return formData.dailyBudget && formData.dailyBudget > 0;
       case 3:

@@ -1,8 +1,9 @@
 import { apiService } from './api';
+import { CampaignObjective } from '../types';
 
 export interface CreateCampaignRequest {
     name: string;
-    objective: string;
+    objective: CampaignObjective;
     status?: 'ACTIVE' | 'PAUSED';
     dailyBudget?: number;
     lifetimeBudget?: number;
