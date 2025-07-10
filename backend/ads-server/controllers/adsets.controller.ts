@@ -28,6 +28,7 @@ export class AdSetsController {
         return;
       }
 
+
       const adSetData: CreateAdSetRequest = req.body;
       // Validate required fields
       if (!adSetData.name || !adSetData.campaignId || !adSetData.optimizationGoal || !adSetData.billingEvent || !adSetData.bidAmount || !adSetData.targeting || !adSetData.startTime || !adSetData.endTime) {

@@ -2,6 +2,7 @@ import { AdSet, IAdSet } from '../../common/models/AdSet';
 import { CreateAdSetRequest, UpdateAdSetRequest } from '../../common/types';
 import { FacebookMarketingAPI } from '../utils/facebook-api.util';
 import { FacebookTokenCache } from '../../common/services/cache.service';
+import { Campaign } from '../../common/models/Campaign';
 
 export class AdSetService {
   private facebookAPI: FacebookMarketingAPI | null = null;
@@ -35,25 +36,102 @@ export class AdSetService {
       // Create ad set on Facebook
       try {
         const facebookAPI = await this.ensureFacebookAPI();
-        const facebookAdSet = await facebookAPI.createAdSet(adSetData.facebookAdAccountId, {
-          campaign_id: adSetData.campaignId,
+        
+        // Get the campaign to find its Facebook ID
+        const campaign = await Campaign.findById(adSetData.campaignId);
+        
+        if (!campaign?.facebookCampaignId) {
+          console.log('Campaign not linked to Facebook, skipping Facebook ad set creation');
+          return adSet;
+        }
+
+        // Validate required fields
+        if (!adSetData.name || !adSetData.optimizationGoal || !adSetData.billingEvent) {
+          throw new Error('Name, optimization goal, and billing event are required');
+        }
+
+        if (!adSetData.startTime || !adSetData.endTime) {
+          throw new Error('Start time and end time are required');
+        }
+
+        // Prepare Facebook ad set data with validation
+        const facebookAdSetData: any = {
+          campaign_id: campaign.facebookCampaignId,
           name: adSetData.name,
           optimization_goal: adSetData.optimizationGoal,
           billing_event: adSetData.billingEvent,
-          bid_amount: Math.round(adSetData.bidAmount * 100), // Convert to cents
-          daily_budget: adSetData.dailyBudget ? Math.round(adSetData.dailyBudget * 100) : undefined,
-          lifetime_budget: adSetData.lifetimeBudget ? Math.round(adSetData.lifetimeBudget * 100) : undefined,
           status: adSetData.status || 'PAUSED',
-          targeting: typeof adSetData.targeting === 'string' ? JSON.parse(adSetData.targeting) : adSetData.targeting,
-          promoted_object: adSetData.promotedObject ? 
-            (typeof adSetData.promotedObject === 'string' ? JSON.parse(adSetData.promotedObject) : adSetData.promotedObject) : 
-            undefined,
           start_time: adSetData.startTime,
           end_time: adSetData.endTime,
-        });
+        };
+
+        // Handle bid amount
+        if (adSetData.bidAmount && adSetData.bidAmount > 0) {
+          facebookAdSetData.bid_amount = Math.round(adSetData.bidAmount * 100);
+        }
+
+        // Handle budget - only use ONE budget type (daily OR lifetime, not both)
+        if (adSetData.dailyBudget && adSetData.dailyBudget > 0) {
+          facebookAdSetData.daily_budget = Math.round(adSetData.dailyBudget * 100);
+        } else if (adSetData.lifetimeBudget && adSetData.lifetimeBudget > 0) {
+          facebookAdSetData.lifetime_budget = Math.round(adSetData.lifetimeBudget * 100);
+        } else {
+          // Default to daily budget if neither is provided
+          facebookAdSetData.daily_budget = 1000; // $10/day minimum
+        }
+
+        // Handle targeting with validation
+        let targeting = {
+          geo_locations: { countries: ["US"] },
+          age_min: 18,
+          age_max: 65,
+          publisher_platforms: ["facebook"],
+          facebook_positions: ["feed"]
+        };
+
+        if (adSetData.targeting) {
+          try {
+            const customTargeting = typeof adSetData.targeting === 'string' ? 
+              JSON.parse(adSetData.targeting) : adSetData.targeting;
+            
+            // Merge with defaults to ensure required fields
+            targeting = {
+              ...targeting,
+              ...customTargeting,
+              // Ensure required fields are always present
+              age_min: customTargeting.age_min || 18,
+              age_max: customTargeting.age_max || 65,
+              geo_locations: customTargeting.geo_locations || { countries: ["US"] }
+            };
+          } catch (error) {
+            console.error('Error parsing targeting, using defaults:', error);
+          }
+        }
+
+        facebookAdSetData.targeting = targeting;
+
+        // Handle promoted object only if valid
+        if (adSetData.promotedObject && adSetData.promotedObject.trim() !== '') {
+          try {
+            const promotedObject = typeof adSetData.promotedObject === 'string' ? 
+              JSON.parse(adSetData.promotedObject) : adSetData.promotedObject;
+            
+            // Only add if it has valid data (not placeholders)
+            if (promotedObject && this.isValidPromotedObject(promotedObject)) {
+              facebookAdSetData.promoted_object = promotedObject;
+            }
+          } catch (error) {
+            console.error('Error parsing promoted object, skipping:', error);
+          }
+        }
+
+        console.log('Creating Facebook ad set with validated data:', JSON.stringify(facebookAdSetData, null, 2));
+
+        const facebookAdSet = await facebookAPI.createAdSet(adSetData.facebookAdAccountId, facebookAdSetData);
 
         // Update local record with Facebook ID
         adSet.facebookAdSetId = facebookAdSet.id;
+        adSet.facebookCampaignId = campaign.facebookCampaignId;
         await adSet.save();
       } catch (facebookError) {
         console.error('Facebook API Error while creating ad set:', facebookError);
@@ -75,10 +153,17 @@ export class AdSetService {
       // Optionally sync with Facebook
       try {
         const facebookAPI = await this.ensureFacebookAPI();
-        const facebookAdSets = await facebookAPI.getAdSets(campaignId);
         
-        // You could implement sync logic here to update local records with Facebook data
-        // For now, just return local records
+        // First, try to get the campaign to find its Facebook ID and ad account
+        const campaign = await Campaign.findById(campaignId);
+        if (campaign?.facebookCampaignId) {
+          // Use the Facebook campaign ID to fetch ad sets
+          const facebookAdSets = await facebookAPI.getAdSetsByCampaign(campaign.facebookCampaignId);
+          console.log(`Fetched ${facebookAdSets.length} ad sets from Facebook for campaign ${campaign.facebookCampaignId}`);
+        } else {
+          console.log('Campaign not linked to Facebook or missing Facebook IDs');
+        }
+        
       } catch (facebookError) {
         console.error('Facebook API Error while fetching ad sets:', facebookError);
         // Continue with local data
@@ -94,12 +179,14 @@ export class AdSetService {
   async getAdSetById(adSetId: string): Promise<IAdSet | null> {
     try {
       const adSet = await AdSet.findById(adSetId);
+
       
       // Optionally fetch fresh data from Facebook
       if (adSet?.facebookAdSetId) {
         try {
           const facebookAPI = await this.ensureFacebookAPI();
           const facebookAdSet = await facebookAPI.getAdSetById(adSet.facebookAdSetId);
+
           
           // You could update local record with Facebook data here
           // For now, just return local record
@@ -225,7 +312,15 @@ export class AdSetService {
   async syncAdSetsWithFacebook(campaignId: string): Promise<void> {
     try {
       const facebookAPI = await this.ensureFacebookAPI();
-      const facebookAdSets = await facebookAPI.getAdSets(campaignId);
+      
+      // Get the campaign to find its Facebook ID and ad account
+      const campaign = await Campaign.findById(campaignId);
+      
+      if (!campaign?.facebookCampaignId || !campaign?.facebookAdAccountId) {
+        throw new Error('Campaign not linked to Facebook or missing Facebook IDs');
+      }
+
+      const facebookAdSets = await facebookAPI.getAdSetsByCampaign(campaign.facebookCampaignId);
       
       for (const fbAdSet of facebookAdSets) {
         // Find local ad set by Facebook ID
@@ -264,7 +359,7 @@ export class AdSetService {
             promotedObject: fbAdSet.promoted_object,
             startTime: fbAdSet.start_time,
             endTime: fbAdSet.end_time,
-            facebookAdAccountId: '', // Will need to be set based on context
+            facebookAdAccountId: campaign.facebookAdAccountId,
           });
           await newAdSet.save();
         }
@@ -273,5 +368,35 @@ export class AdSetService {
       console.error('Error syncing ad sets with Facebook:', error);
       throw error;
     }
+  }
+
+  /**
+   * Validate promoted object structure
+   */
+  private isValidPromotedObject(promotedObject: any): boolean {
+    if (!promotedObject || typeof promotedObject !== 'object') {
+      return false;
+    }
+
+    // Check for placeholder values
+    const hasValidPageId = promotedObject.page_id && 
+      promotedObject.page_id !== '<PAGE_ID>' && 
+      promotedObject.page_id.trim() !== '' &&
+      !promotedObject.page_id.includes('<') &&
+      !promotedObject.page_id.includes('>');
+
+    const hasValidAppId = promotedObject.application_id && 
+      promotedObject.application_id !== '<APP_ID>' && 
+      promotedObject.application_id.trim() !== '' &&
+      !promotedObject.application_id.includes('<') &&
+      !promotedObject.application_id.includes('>');
+
+    const hasValidStoreUrl = promotedObject.object_store_url && 
+      promotedObject.object_store_url !== '<STORE_URL>' && 
+      promotedObject.object_store_url.trim() !== '' &&
+      !promotedObject.object_store_url.includes('<') &&
+      !promotedObject.object_store_url.includes('>');
+
+    return hasValidPageId || hasValidAppId || hasValidStoreUrl;
   }
 }

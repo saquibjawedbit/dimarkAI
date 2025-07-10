@@ -73,12 +73,13 @@ export class CampaignService {
         endTime: campaignData.endTime ? new Date(campaignData.endTime) : undefined,
         targetingSpec: campaignData.targetingSpec,
         facebookAdAccountId: campaignData.facebookAdAccountId,
+        specialAdCategories: campaignData.specialAdCategories || [],
       });
 
       const savedCampaign = await campaign.save();
 
       // Create campaign on Facebook (if needed)
-      if (campaignData.status === 'ACTIVE') {
+      if (campaignData.status) {
         try {
           const facebookCampaignId = await this.createFacebookCampaign(savedCampaign);
           savedCampaign.facebookCampaignId = facebookCampaignId;
@@ -386,7 +387,10 @@ export class CampaignService {
         startTime: campaign.startTime?.toISOString(),
         endTime: campaign.endTime?.toISOString(),
         targetingSpec: campaign.targetingSpec,
+        specialAdCategories: campaign.specialAdCategories || [], // Required field - empty array indicates no special ad categories
       });
+
+      console.log('Facebook Campaign Creation Response:', facebookResponse);
       
       return facebookResponse.id;
     } catch (error) {
@@ -492,36 +496,33 @@ export class CampaignService {
     }
   }
 
-  private mapFacebookObjective(fbObjective: string): 'AWARENESS' | 'TRAFFIC' | 'ENGAGEMENT' | 'LEADS' | 'APP_INSTALLS' | 'SALES' | 'LINK_CLICKS' | 'POST_ENGAGEMENT' | 'PAGE_LIKES' | 'EVENT_RESPONSES' | 'MESSAGES' | 'CONVERSIONS' | 'CATALOG_SALES' | 'STORE_TRAFFIC' {
+  private mapFacebookObjective(fbObjective: string): 'OUTCOME_LEADS' | 'OUTCOME_SALES' | 'OUTCOME_ENGAGEMENT' | 'OUTCOME_AWARENESS' | 'OUTCOME_TRAFFIC' | 'OUTCOME_APP_PROMOTION' {
     // Map Facebook objectives to our internal objectives
     switch (fbObjective.toUpperCase()) {
-      case 'BRAND_AWARENESS':
-      case 'REACH':
-        return 'AWARENESS';
-      case 'TRAFFIC':
-      case 'LINK_CLICKS':
-        return 'LINK_CLICKS';
+      case 'OUTCOME_LEADS':
+      case 'LEAD_GENERATION':
+        return 'OUTCOME_LEADS';
+      case 'OUTCOME_SALES':
+      case 'CONVERSIONS':
+      case 'CATALOG_SALES':
+        return 'OUTCOME_SALES';
+      case 'OUTCOME_ENGAGEMENT':
       case 'ENGAGEMENT':
       case 'POST_ENGAGEMENT':
-        return 'POST_ENGAGEMENT';
-      case 'LEAD_GENERATION':
-        return 'LEADS';
+        return 'OUTCOME_ENGAGEMENT';
+      case 'OUTCOME_AWARENESS':
+      case 'BRAND_AWARENESS':
+      case 'REACH':
+        return 'OUTCOME_AWARENESS';
+      case 'OUTCOME_TRAFFIC':
+      case 'TRAFFIC':
+      case 'LINK_CLICKS':
+        return 'OUTCOME_TRAFFIC';
+      case 'OUTCOME_APP_PROMOTION':
       case 'APP_INSTALLS':
-        return 'APP_INSTALLS';
-      case 'CONVERSIONS':
-        return 'CONVERSIONS';
-      case 'CATALOG_SALES':
-        return 'CATALOG_SALES';
-      case 'STORE_TRAFFIC':
-        return 'STORE_TRAFFIC';
-      case 'PAGE_LIKES':
-        return 'PAGE_LIKES';
-      case 'EVENT_RESPONSES':
-        return 'EVENT_RESPONSES';
-      case 'MESSAGES':
-        return 'MESSAGES';
+        return 'OUTCOME_APP_PROMOTION';
       default:
-        return 'TRAFFIC'; // Default fallback
+        return 'OUTCOME_TRAFFIC'; // Default fallback
     }
   }
 }

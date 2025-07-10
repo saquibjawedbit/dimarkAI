@@ -22,24 +22,55 @@ export class FacebookMarketingAPI {
   async createCampaign(adAccountId: string, campaignData: any): Promise<any> {
     try {
       const url = `${this.baseURL}/act_${adAccountId}/campaigns`;
-      const response: AxiosResponse = await axios.post(url, {
+      
+      // Prepare campaign payload
+      const payload: any = {
         name: campaignData.name,
         objective: campaignData.objective,
         status: campaignData.status || 'PAUSED',
-        daily_budget: campaignData.dailyBudget ? Math.round(campaignData.dailyBudget * 100) : undefined,
-        lifetime_budget: campaignData.lifetimeBudget ? Math.round(campaignData.lifetimeBudget * 100) : undefined,
-        bid_strategy: campaignData.bidStrategy,
-        bid_amount: campaignData.bidAmount ? Math.round(campaignData.bidAmount * 100) : undefined,
-        start_time: campaignData.startTime,
-        stop_time: campaignData.endTime,
-        targeting: campaignData.targetingSpec,
+        special_ad_categories: campaignData.specialAdCategories || [], // Required field
         access_token: this.accessToken,
-      });
+      };
 
+      // Add budget fields if provided
+      if (campaignData.dailyBudget) {
+        payload.daily_budget = Math.round(campaignData.dailyBudget * 100);
+      }
+      if (campaignData.lifetimeBudget) {
+        payload.lifetime_budget = Math.round(campaignData.lifetimeBudget * 100);
+      }
+
+      // Add bid strategy and amount if provided
+      if (campaignData.bidStrategy) {
+        payload.bid_strategy = campaignData.bidStrategy;
+      }
+      if (campaignData.bidAmount) {
+        payload.bid_amount = Math.round(campaignData.bidAmount * 100);
+      }
+
+      // Add time fields if provided
+      if (campaignData.startTime) {
+        payload.start_time = campaignData.startTime;
+      }
+      if (campaignData.endTime) {
+        payload.stop_time = campaignData.endTime;
+      }
+
+      // Add targeting if provided
+      if (campaignData.targetingSpec) {
+        payload.targeting = campaignData.targetingSpec;
+      }
+
+      console.log('Facebook Campaign Creation Payload:', payload);
+
+      const response: AxiosResponse = await axios.post(url, payload);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Facebook API Error:', error);
-      throw new Error(`Failed to create Facebook campaign: ${error}`);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to create Facebook campaign: ${error.response?.data?.error?.message || error.message}`);
     }
   }
 
@@ -233,26 +264,69 @@ export class FacebookMarketingAPI {
   async createAdSet(adAccountId: string, adSetData: any): Promise<any> {
     try {
       const url = `${this.baseURL}/act_${adAccountId}/adsets`;
-      const response: AxiosResponse = await axios.post(url, {
+      
+      // Validate required fields
+      if (!adSetData.name || !adSetData.campaign_id || !adSetData.optimization_goal || 
+          !adSetData.billing_event || !adSetData.targeting || !adSetData.start_time || 
+          !adSetData.end_time) {
+        throw new Error('Missing required fields for ad set creation: name, campaign_id, optimization_goal, billing_event, targeting, start_time, end_time');
+      }
+
+      // Validate budget
+      if (!adSetData.daily_budget && !adSetData.lifetime_budget) {
+        throw new Error('Either daily_budget or lifetime_budget must be specified');
+      }
+
+      if (adSetData.daily_budget && adSetData.lifetime_budget) {
+        throw new Error('Cannot specify both daily_budget and lifetime_budget');
+      }
+
+      // Prepare clean payload
+      const payload: any = {
         name: adSetData.name,
         campaign_id: adSetData.campaign_id,
         optimization_goal: adSetData.optimization_goal,
         billing_event: adSetData.billing_event,
-        bid_amount: adSetData.bid_amount,
-        daily_budget: adSetData.daily_budget,
-        lifetime_budget: adSetData.lifetime_budget,
         status: adSetData.status || 'PAUSED',
         targeting: adSetData.targeting,
-        promoted_object: adSetData.promoted_object,
         start_time: adSetData.start_time,
         end_time: adSetData.end_time,
         access_token: this.accessToken,
-      });
+      };
 
+      // Add budget
+      if (adSetData.daily_budget) {
+        payload.daily_budget = adSetData.daily_budget;
+      } else if (adSetData.lifetime_budget) {
+        payload.lifetime_budget = adSetData.lifetime_budget;
+      }
+
+      // Add bid amount if provided
+      if (adSetData.bid_amount) {
+        payload.bid_amount = adSetData.bid_amount;
+      }
+
+      // Add promoted object if provided and valid
+      if (adSetData.promoted_object && typeof adSetData.promoted_object === 'object') {
+        payload.promoted_object = adSetData.promoted_object;
+      }
+
+      console.log('Facebook API createAdSet URL:', url);
+      console.log('Facebook API createAdSet payload:', JSON.stringify(payload, null, 2));
+
+      const response: AxiosResponse = await axios.post(url, payload);
       return response.data;
-    } catch (error) {
-      console.error('Facebook API Error:', error);
-      throw new Error(`Failed to create Facebook ad set: ${error}`);
+    } catch (error: any) {
+      console.error('Facebook API createAdSet error:', error);
+      if (error.response) {
+        console.error('Facebook API Error Response:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+        });
+        throw new Error(`Facebook API Error: ${error.response.data?.error?.message || error.response.statusText}`);
+      }
+      throw new Error(`Failed to create Facebook ad set: ${error.message}`);
     }
   }
 
@@ -305,9 +379,58 @@ export class FacebookMarketingAPI {
   }
 
   /**
-   * Get ad sets from Facebook campaign
+   * Get ad sets from Facebook ad account (optionally filtered by campaign)
    */
-  async getAdSets(campaignId: string, fields?: string[]): Promise<any> {
+  async getAdSets(adAccountId: string, campaignId?: string, fields?: string[]): Promise<any> {
+    try {
+      const defaultFields = [
+        'id',
+        'name',
+        'campaign_id',
+        'optimization_goal',
+        'billing_event',
+        'bid_amount',
+        'daily_budget',
+        'lifetime_budget',
+        'status',
+        'targeting',
+        'promoted_object',
+        'start_time',
+        'end_time',
+        'created_time',
+        'updated_time'
+      ];
+
+      const url = `${this.baseURL}/act_${adAccountId}/adsets`;
+      const params: any = {
+        fields: (fields || defaultFields).join(','),
+        access_token: this.accessToken,
+      };
+
+      // Filter by campaign if specified
+      if (campaignId) {
+        params.filtering = JSON.stringify([
+          {
+            field: 'campaign.id',
+            operator: 'IN',
+            value: [campaignId]
+          }
+        ]);
+      }
+
+      const response: AxiosResponse = await axios.get(url, { params });
+
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Facebook API Error:', error);
+      throw new Error(`Failed to fetch Facebook ad sets: ${error}`);
+    }
+  }
+
+  /**
+   * Get ad sets from Facebook campaign (alternative method)
+   */
+  async getAdSetsByCampaign(campaignId: string, fields?: string[]): Promise<any> {
     try {
       const defaultFields = [
         'id',
@@ -338,7 +461,7 @@ export class FacebookMarketingAPI {
       return response.data.data || [];
     } catch (error) {
       console.error('Facebook API Error:', error);
-      throw new Error(`Failed to fetch Facebook ad sets: ${error}`);
+      throw new Error(`Failed to fetch Facebook ad sets by campaign: ${error}`);
     }
   }
 
