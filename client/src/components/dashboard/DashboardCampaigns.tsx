@@ -297,8 +297,8 @@ export const DashboardCampaigns: React.FC = () => {
         sortOrder: 'desc',
       });
       
-      if (response.data) {
-        const mappedCampaigns = response.data.data.map(mapBackendCampaign);
+      if (response?.data) {
+        const mappedCampaigns = (response.data as unknown as BackendCampaign[]).map(mapBackendCampaign);
         setCampaigns(mappedCampaigns);
       }
     } catch (err: any) {
