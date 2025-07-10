@@ -7,6 +7,7 @@ import { CreateCampaignModal } from '../ui/CreateCampaignModal';
 import { EditCampaignModal } from '../ui/EditCampaignModal';
 import { AdCreative } from '../../types';
 import { campaignService, Campaign as BackendCampaign } from '../../services/campaign';
+import { AdSetsPanel } from './AdSetsPanel';
 
 // Mock campaign data
 const mockCampaigns = [
@@ -225,6 +226,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
   );
 };
 
+
 export const DashboardCampaigns: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [ads] = useState<AdCreative[]>(mockAds);
@@ -236,6 +238,10 @@ export const DashboardCampaigns: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<BackendCampaign | null>(null);
+  // AdSets UI state
+  const [showAdSetsPanel, setShowAdSetsPanel] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [selectedCampaignName, setSelectedCampaignName] = useState<string>('');
 
   // Convert backend campaign to component campaign format
   const mapBackendCampaign = (backendCampaign: BackendCampaign): Campaign => ({
@@ -287,11 +293,19 @@ export const DashboardCampaigns: React.FC = () => {
     loadCampaigns();
   }, []);
 
+
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Handle campaign card click to show AdSets
+  const handleViewAdSets = (campaign: Campaign) => {
+    setSelectedCampaignId(campaign.id);
+    setSelectedCampaignName(campaign.name);
+    setShowAdSetsPanel(true);
+  };
 
   const handleEditCampaign = async (campaign: Campaign) => {
     try {
@@ -440,14 +454,15 @@ export const DashboardCampaigns: React.FC = () => {
       {activeTab === 'campaigns' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredCampaigns.map((campaign) => (
-            <CampaignCard
-              key={campaign.id}
-              campaign={campaign}
-              onEdit={handleEditCampaign}
-              onDelete={handleDeleteCampaign}
-              onToggleStatus={handleToggleCampaignStatus}
-              onDuplicate={handleDuplicateCampaign}
-            />
+            <div key={campaign.id} className="cursor-pointer" onClick={() => handleViewAdSets(campaign)}>
+              <CampaignCard
+                campaign={campaign}
+                onEdit={handleEditCampaign}
+                onDelete={handleDeleteCampaign}
+                onToggleStatus={handleToggleCampaignStatus}
+                onDuplicate={handleDuplicateCampaign}
+              />
+            </div>
           ))}
         </div>
       ) : (
@@ -518,6 +533,15 @@ export const DashboardCampaigns: React.FC = () => {
         onSuccess={loadCampaigns}
         campaign={editingCampaign}
       />
+
+      {/* AdSets Panel */}
+      {showAdSetsPanel && selectedCampaignId && (
+        <AdSetsPanel
+          campaignId={selectedCampaignId}
+          campaignName={selectedCampaignName}
+          onClose={() => setShowAdSetsPanel(false)}
+        />
+      )}
     </div>
   );
 };

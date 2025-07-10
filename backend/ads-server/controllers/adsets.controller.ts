@@ -15,8 +15,21 @@ export class AdSetsController {
         return;
       }
       const adSetData: CreateAdSetRequest = req.body;
+      // Validate required fields
       if (!adSetData.name || !adSetData.campaignId || !adSetData.optimizationGoal || !adSetData.billingEvent || !adSetData.bidAmount || !adSetData.targeting || !adSetData.facebookAdAccountId) {
         res.status(400).json({ success: false, message: 'Missing required fields' } as ApiResponse);
+        return;
+      }
+      // Validate optimizationGoal
+      const { OPTIMIZATION_GOALS } = require('../../common/constants/optimizationGoals');
+      if (!OPTIMIZATION_GOALS.includes(adSetData.optimizationGoal)) {
+        res.status(400).json({ success: false, message: 'Invalid optimizationGoal' } as ApiResponse);
+        return;
+      }
+      // Validate billingEvent
+      const { BILLING_EVENTS } = require('../../common/constants/billingEvents');
+      if (!BILLING_EVENTS.includes(adSetData.billingEvent)) {
+        res.status(400).json({ success: false, message: 'Invalid billingEvent' } as ApiResponse);
         return;
       }
       const adSetService = this.createAdSetService(userId);
