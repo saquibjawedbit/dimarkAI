@@ -108,19 +108,31 @@ export interface CampaignInsights {
 }
 
 class CampaignService {
-    // Create a new ad set for a campaign (placeholder implementation)
+    // Create a new ad set for a campaign
     async createAdSet(campaignId: string, adSetData: any) {
-        // You should implement this API in your backend
-        // For now, simulate success
-        return new Promise(resolve => setTimeout(resolve, 500));
-        // Example for real API:
-        // return apiService.post(`/api/adsets/campaign/${campaignId}`, adSetData);
+        return apiService.post(`/api/adsets`, { ...adSetData, campaignId });
     }
+    
     // Get all ad sets for a campaign
     async getAdSetsByCampaign(campaignId: string) {
-        // The backend route is likely /api/adsets/campaign/:campaignId
         return apiService.get(`/api/adsets/campaign/${campaignId}`);
     }
+    
+    // Get ad set by ID
+    async getAdSetById(adSetId: string) {
+        return apiService.get(`/api/adsets/${adSetId}`);
+    }
+    
+    // Update ad set
+    async updateAdSet(adSetId: string, updateData: any) {
+        return apiService.put(`/api/adsets/${adSetId}`, updateData);
+    }
+    
+    // Delete ad set
+    async deleteAdSet(adSetId: string) {
+        return apiService.delete(`/api/adsets/${adSetId}`);
+    }
+    
     private readonly baseEndpoint = '/api/campaigns';
 
     // Create a new campaign

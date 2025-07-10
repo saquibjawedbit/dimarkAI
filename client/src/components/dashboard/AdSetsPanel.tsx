@@ -12,6 +12,26 @@ interface AdSet {
   budget: number;
   startTime: string;
   endTime: string;
+  optimizationGoal?: string;
+  billingEvent?: string;
+  bidAmount?: number;
+  dailyBudget?: number;
+  lifetimeBudget?: number;
+}
+
+interface CreateAdSetFormData {
+  name: string;
+  optimizationGoal: string;
+  billingEvent: string;
+  bidAmount: number;
+  dailyBudget: number;
+  lifetimeBudget: number;
+  status: string;
+  targeting: string;
+  promotedObject: string;
+  facebookAdAccountId: string;
+  startTime: string;
+  endTime: string;
 }
 
 interface AdSetsPanelProps {
@@ -25,7 +45,7 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newAdSet, setNewAdSet] = useState({
+  const [newAdSet, setNewAdSet] = useState<CreateAdSetFormData>({
     name: '',
     optimizationGoal: '',
     billingEvent: '',
@@ -164,6 +184,7 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Optimization Goal</label>
                     <select className="w-full border rounded-lg px-4 py-2" value={newAdSet.optimizationGoal} onChange={e => setNewAdSet({ ...newAdSet, optimizationGoal: e.target.value })} required>
+                      <option value="">Select optimization goal</option>
                       {OPTIMIZATION_GOALS.map(goal => (
                         <option key={goal} value={goal}>{goal.replace(/_/g, ' ').replace('NONE', 'None')}</option>
                       ))}
@@ -172,6 +193,7 @@ export const AdSetsPanel: React.FC<AdSetsPanelProps> = ({ campaignId, campaignNa
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Billing Event</label>
                     <select className="w-full border rounded-lg px-4 py-2" value={newAdSet.billingEvent} onChange={e => setNewAdSet({ ...newAdSet, billingEvent: e.target.value })} required>
+                      <option value="">Select billing event</option>
                       {BILLING_EVENTS.map(event => (
                         <option key={event} value={event}>{event.replace(/_/g, ' ').replace('NONE', 'None')}</option>
                       ))}

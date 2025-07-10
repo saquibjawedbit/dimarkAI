@@ -16,7 +16,7 @@ export class AdSetsController {
       }
       const adSetData: CreateAdSetRequest = req.body;
       // Validate required fields
-      if (!adSetData.name || !adSetData.campaignId || !adSetData.optimizationGoal || !adSetData.billingEvent || !adSetData.bidAmount || !adSetData.targeting || !adSetData.facebookAdAccountId) {
+      if (!adSetData.name || !adSetData.campaignId || !adSetData.optimizationGoal || !adSetData.billingEvent || !adSetData.bidAmount || !adSetData.targeting || !adSetData.facebookAdAccountId || !adSetData.startTime || !adSetData.endTime) {
         res.status(400).json({ success: false, message: 'Missing required fields' } as ApiResponse);
         return;
       }

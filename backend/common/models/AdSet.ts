@@ -16,6 +16,8 @@ export interface IAdSet extends Document {
   facebookAdSetId?: string;
   facebookCampaignId?: string;
   facebookAdAccountId: string;
+  startTime: Date;
+  endTime: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +37,8 @@ const AdSetSchema = new Schema<IAdSet>({
   facebookAdSetId: { type: String },
   facebookCampaignId: { type: String },
   facebookAdAccountId: { type: String, required: true },
+  startTime: { type: Date, required: true },
+  endTime: { type: Date, required: true },
 }, { timestamps: true });
 
 export const AdSet = mongoose.model<IAdSet>('AdSet', AdSetSchema);
