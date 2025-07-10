@@ -40,13 +40,23 @@ export class CampaignController {
             const campaignData: CreateCampaignRequest = req.body;
 
             // Basic validation
-            if (!campaignData.name || !campaignData.objective || !campaignData.facebookAdAccountId) {
+            if (!campaignData.name || !campaignData.objective) {
                 res.status(400).json({
                     success: false,
-                    message: 'Name, objective, and Facebook ad account ID are required',
+                    message: 'Name, objective are required',
                 } as ApiResponse);
                 return;
             }
+            campaignData.facebookAdAccountId = (req as any).user?.adsAccountId;
+
+            if (!campaignData.facebookAdAccountId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Facebook Ads Account ID not configured for user. Please update your profile.',
+                } as ApiResponse);
+                return;
+            }
+
 
             const campaignService = this.createCampaignService(userId);
             const campaign = await campaignService.createCampaign(userId, campaignData);
@@ -84,7 +94,7 @@ export class CampaignController {
             // Parse query parameters
             const filters: CampaignFilters = {
                 status: req.query.status as any,
-                objective: req.query.objective as string,
+                objective: req.query.objective as CampaignFilters["objective"],
                 startDate: req.query.startDate as string,
                 endDate: req.query.endDate as string,
                 facebookAdAccountId: req.query.facebookAdAccountId as string,
