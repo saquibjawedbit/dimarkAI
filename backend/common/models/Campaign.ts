@@ -4,7 +4,7 @@ export interface ICampaign extends Document {
   _id: string;
   userId: string;
   name: string;
-  objective: 'AWARENESS' | 'TRAFFIC' | 'ENGAGEMENT' | 'LEADS' | 'APP_INSTALLS' | 'SALES' | 'LINK_CLICKS' | 'POST_ENGAGEMENT' | 'PAGE_LIKES' | 'EVENT_RESPONSES' | 'MESSAGES' | 'CONVERSIONS' | 'CATALOG_SALES' | 'STORE_TRAFFIC';
+  objective: 'OUTCOME_LEADS' | 'OUTCOME_SALES' | 'OUTCOME_ENGAGEMENT' | 'OUTCOME_AWARENESS' | 'OUTCOME_TRAFFIC' | 'OUTCOME_APP_PROMOTION';
   status: 'ACTIVE' | 'PAUSED' | 'DELETED' | 'ARCHIVED';
   dailyBudget?: number;
   lifetimeBudget?: number;
@@ -44,6 +44,7 @@ export interface ICampaign extends Document {
   };
   facebookCampaignId?: string;
   facebookAdAccountId: string;
+  specialAdCategories?: ('HOUSING' | 'EMPLOYMENT' | 'CREDIT' | 'ISSUES_ELECTIONS_POLITICS')[];
   adSetsCount: number;
   adsCount: number;
   // Performance metrics
@@ -79,20 +80,12 @@ const campaignSchema = new Schema<ICampaign>(
       type: String,
       required: true,
       enum: [
-        'AWARENESS',
-        'TRAFFIC', 
-        'ENGAGEMENT',
-        'LEADS',
-        'APP_INSTALLS',
-        'SALES',
-        'LINK_CLICKS',
-        'POST_ENGAGEMENT',
-        'PAGE_LIKES',
-        'EVENT_RESPONSES',
-        'MESSAGES',
-        'CONVERSIONS',
-        'CATALOG_SALES',
-        'STORE_TRAFFIC'
+        'OUTCOME_LEADS',
+        'OUTCOME_SALES',
+        'OUTCOME_ENGAGEMENT',
+        'OUTCOME_AWARENESS',
+        'OUTCOME_TRAFFIC',
+        'OUTCOME_APP_PROMOTION'
       ],
     },
     status: {
@@ -164,6 +157,11 @@ const campaignSchema = new Schema<ICampaign>(
       type: String,
       required: true,
       index: true,
+    },
+    specialAdCategories: {
+      type: [String],
+      enum: ['HOUSING', 'EMPLOYMENT', 'CREDIT', 'ISSUES_ELECTIONS_POLITICS'],
+      default: [],
     },
     adSetsCount: {
       type: Number,

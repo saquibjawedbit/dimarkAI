@@ -43,7 +43,10 @@ export class AuthMiddleware {
         return;
       }
       
-      req.user = payload;
+      req.user = {
+        ...payload,
+        adsAccountId: user.adsAccountId || null // Include ads account ID if available
+      };
       next();
     } catch (error) {
       res.status(401).json({
