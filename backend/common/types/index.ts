@@ -1,5 +1,6 @@
 export * from './auth.types';
 export * from './campaign.types';
+export * from './adset.types';
 
 // Common API response types
 export interface ApiResponse<T = any> {
