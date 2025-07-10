@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { AdCard } from '../ui/AdCard';
 import { CreateCampaignModal } from '../ui/CreateCampaignModal';
+import { EditCampaignModal } from '../ui/EditCampaignModal';
 import { AdCreative } from '../../types';
 import { campaignService, Campaign as BackendCampaign } from '../../services/campaign';
 
@@ -233,6 +234,8 @@ export const DashboardCampaigns: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<BackendCampaign | null>(null);
 
   // Convert backend campaign to component campaign format
   const mapBackendCampaign = (backendCampaign: BackendCampaign): Campaign => ({
@@ -291,7 +294,18 @@ export const DashboardCampaigns: React.FC = () => {
   });
 
   const handleEditCampaign = (campaign: Campaign) => {
-    console.log('Editing campaign:', campaign);
+    // Find the backend campaign by id (since Campaign is mapped)
+    const backend = campaigns.find(c => c.id === campaign.id);
+    if (backend) {
+      setEditingCampaign({
+        _id: backend.id,
+        name: backend.name,
+        status: backend.status,
+        dailyBudget: backend.budget,
+        // Add other fields as needed for editing
+      } as BackendCampaign);
+      setShowEditModal(true);
+    }
   };
 
   const handleDeleteCampaign = async (campaign: Campaign) => {
@@ -502,6 +516,12 @@ export const DashboardCampaigns: React.FC = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handleCreateSuccess}
+      />
+      <EditCampaignModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={loadCampaigns}
+        campaign={editingCampaign}
       />
     </div>
   );
