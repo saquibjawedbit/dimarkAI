@@ -259,7 +259,7 @@ export const DashboardCampaigns: React.FC = () => {
   const loadCampaigns = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await campaignService.getCampaigns({
         page: 1,
@@ -267,7 +267,7 @@ export const DashboardCampaigns: React.FC = () => {
         sortBy: 'createdAt',
         sortOrder: 'desc',
       });
-      
+
       if (response?.data) {
         const mappedCampaigns = (response.data as unknown as BackendCampaign[]).map(mapBackendCampaign);
         setCampaigns(mappedCampaigns);
@@ -293,18 +293,15 @@ export const DashboardCampaigns: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleEditCampaign = (campaign: Campaign) => {
-    // Find the backend campaign by id (since Campaign is mapped)
-    const backend = campaigns.find(c => c.id === campaign.id);
-    if (backend) {
-      setEditingCampaign({
-        _id: backend.id,
-        name: backend.name,
-        status: backend.status,
-        dailyBudget: backend.budget,
-        // Add other fields as needed for editing
-      } as BackendCampaign);
-      setShowEditModal(true);
+  const handleEditCampaign = async (campaign: Campaign) => {
+    try {
+      const response = await campaignService.getCampaignById(campaign.id);
+      if (response?.data) {
+        setEditingCampaign(response.data as BackendCampaign); // Full data
+        setShowEditModal(true);
+      }
+    } catch (err) {
+      console.error('Failed to fetch campaign details:', err);
     }
   };
 
@@ -389,21 +386,19 @@ export const DashboardCampaigns: React.FC = () => {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('campaigns')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'campaigns'
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'campaigns'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             Campaigns ({campaigns.length})
           </button>
           <button
             onClick={() => setActiveTab('ads')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'ads'
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'ads'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             Ad Creatives ({ads.length})
           </button>
@@ -472,23 +467,23 @@ export const DashboardCampaigns: React.FC = () => {
       {/* Empty State */}
       {((activeTab === 'campaigns' && filteredCampaigns.length === 0) ||
         (activeTab === 'ads' && ads.length === 0)) && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            {activeTab === 'campaigns' ? <Target size={24} className="text-gray-400" /> : <Plus size={24} className="text-gray-400" />}
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              {activeTab === 'campaigns' ? <Target size={24} className="text-gray-400" /> : <Plus size={24} className="text-gray-400" />}
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No {activeTab} found
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm
+                ? `No ${activeTab} match your search criteria.`
+                : `Get started by creating your first ${activeTab.slice(0, -1)}.`}
+            </p>
+            <Button variant="primary" leftIcon={<Plus size={16} />}>
+              Create {activeTab === 'campaigns' ? 'Campaign' : 'Ad Creative'}
+            </Button>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No {activeTab} found
-          </h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm
-              ? `No ${activeTab} match your search criteria.`
-              : `Get started by creating your first ${activeTab.slice(0, -1)}.`}
-          </p>
-          <Button variant="primary" leftIcon={<Plus size={16} />}>
-            Create {activeTab === 'campaigns' ? 'Campaign' : 'Ad Creative'}
-          </Button>
-        </div>
-      )}
+        )}
 
       {/* Loading State */}
       {loading && (
