@@ -72,7 +72,6 @@ export class CampaignController {
      */
     getCampaigns = async (req: Request, res: Response): Promise<void> => {
         try {
-            console.log('Fetching campaigns with filters:', (req as any).user);
             const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
@@ -123,7 +122,7 @@ export class CampaignController {
      */
     getCampaignById = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -165,7 +164,7 @@ export class CampaignController {
      */
     updateCampaign = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -209,7 +208,7 @@ export class CampaignController {
      */
     deleteCampaign = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -250,7 +249,7 @@ export class CampaignController {
      */
     bulkOperations = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -301,7 +300,7 @@ export class CampaignController {
      */
     getCampaignInsights = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -340,7 +339,7 @@ export class CampaignController {
      */
     syncWithFacebook = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -382,7 +381,7 @@ export class CampaignController {
      */
     pauseCampaign = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -424,7 +423,7 @@ export class CampaignController {
      */
     activateCampaign = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -466,7 +465,7 @@ export class CampaignController {
      */
     archiveCampaign = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -508,7 +507,7 @@ export class CampaignController {
      */
     duplicateCampaign = async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = (req as any).user?.id;
+            const userId = (req as any).user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
