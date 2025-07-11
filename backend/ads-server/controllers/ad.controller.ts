@@ -61,6 +61,23 @@ export class AdController {
         return;
       }
 
+      // Validate ID formats
+      if (!/^\d+$/.test(adData.adsetId)) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Adset ID must be a valid number' 
+        } as ApiResponse);
+        return;
+      }
+
+      if (!/^\d+$/.test(adData.creativeId)) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Creative ID must be a valid number' 
+        } as ApiResponse);
+        return;
+      }
+
       const adService = await this.createAdService(userId);
       const ad = await adService.createAd(adData);
 

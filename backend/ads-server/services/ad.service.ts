@@ -59,12 +59,29 @@ export class AdService {
     try {
       console.log('Creating ad:', adData);
 
+      // Validate required fields
+      if (!adData.name || !adData.adsetId || !adData.creativeId) {
+        throw new Error('Name, adset ID, and creative ID are required');
+      }
+
+      // Validate that adsetId and creativeId are valid numbers
+      const adsetIdNum = parseInt(adData.adsetId, 10);
+      const creativeIdNum = parseInt(adData.creativeId, 10);
+      
+      if (isNaN(adsetIdNum) || adsetIdNum <= 0) {
+        throw new Error('Invalid adset ID - must be a positive number');
+      }
+      
+      if (isNaN(creativeIdNum) || creativeIdNum <= 0) {
+        throw new Error('Invalid creative ID - must be a positive number');
+      }
+
       // Prepare Facebook API request
       const facebookAdData = {
         name: adData.name,
-        adset_id: adData.adsetId,
+        adset_id: adsetIdNum, // Use validated number
         creative: {
-          creative_id: adData.creativeId
+          creative_id: creativeIdNum // Use validated number
         },
         status: adData.status || 'PAUSED',
         ...(adData.trackingSpecs && { tracking_specs: adData.trackingSpecs }),
