@@ -48,10 +48,6 @@ export const CreativeCard: React.FC<CreativeCardProps> = ({
     return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
   const getCreativeType = () => {
     if (creative.object_story_id) return 'Page Post';
     if (creative.object_story_spec?.link_data) return 'Link Ad';
@@ -101,7 +97,7 @@ export const CreativeCard: React.FC<CreativeCardProps> = ({
               <span className="text-sm text-gray-500">{getCreativeType()}</span>
             </div>
             <p className="text-sm text-gray-600">
-              Created: {formatDate(creative.created_time)}
+              Creative ID: {creative.id}
             </p>
           </div>
           <div className="relative">
@@ -215,7 +211,7 @@ export const CreativeCard: React.FC<CreativeCardProps> = ({
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDIwMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NyA0MlY3OEg5M1Y0Mkg4N1oiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+CjxyZWN0IHg9Ijc3IiB5PSI1MiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo=';
+                        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDIwMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik08NyA0MlY3OEg5M1Y0Mkg4N1oiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+CjxyZWN0IHg9Ijc3IiB5PSI1MiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo=';
                       }}
                     />
                   </div>
@@ -244,21 +240,6 @@ export const CreativeCard: React.FC<CreativeCardProps> = ({
                 <p className="font-semibold">{formatStatus(creative.authorization_category)}</p>
               </div>
             )}
-            {creative.link_url && (
-              <div className="col-span-2">
-                <span className="text-gray-600">Link</span>
-                <p className="font-semibold text-primary-600 truncate">
-                  <a href={creative.link_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    {creative.link_url}
-                  </a>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Last Updated */}
-          <div className="text-sm text-gray-500 pt-2 border-t border-gray-200">
-            Last updated: {formatDate(creative.updated_time)}
           </div>
         </div>
       </CardContent>

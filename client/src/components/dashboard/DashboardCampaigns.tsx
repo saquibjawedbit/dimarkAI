@@ -277,6 +277,10 @@ export const DashboardCampaigns: React.FC = () => {
 
       if (response?.data?.data) {
         setCreatives(response.data.data);
+        console.log('Creatives loaded successfully:', response.data.data.length, 'creatives');
+        console.log('Sample creative:', response.data.data[0]);
+      } else {
+        console.warn('No creatives data received:', response);
       }
     } catch (err: any) {
       setCreativesError(err?.message || 'Failed to load creatives');
@@ -303,6 +307,14 @@ export const DashboardCampaigns: React.FC = () => {
     const matchesSearch = creative.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || creative.status === statusFilter;
     return matchesSearch && matchesStatus;
+  });
+  
+  console.log('Filtering creatives:', {
+    totalCreatives: creatives.length,
+    filteredCreatives: filteredCreatives.length,
+    searchTerm,
+    statusFilter,
+    activeTab
   });
 
   // Handle campaign card click to show AdSets
