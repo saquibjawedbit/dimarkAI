@@ -2,12 +2,15 @@ import { Request, Response } from 'express';
 import { AdService, CreateAdRequest, UpdateAdRequest, GetAdsParams } from '../services/ad.service';
 import { UserRepository } from '../../common/repositories/UserRepository';
 import { ApiResponse } from '../../common/types/index';
+import { FacebookTokenCache, RedisCacheService } from '../../common';
 
 export class AdController {
   private userRepository: UserRepository;
+    cacheService: FacebookTokenCache;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.cacheService = new FacebookTokenCache();
   }
 
   /**
@@ -22,7 +25,7 @@ export class AdController {
 
     // For now, use environment variables for Facebook access token and ad account
     // In a production app, these would be stored per user in the database
-    const facebookAccessToken = process.env.FACEBOOK_ACCESS_TOKEN;
+    const facebookAccessToken = await this.cacheService.getUserToken(userId);
     const facebookAdAccount = process.env.FACEBOOK_AD_ACCOUNT_ID || user.adsAccountId;
 
     if (!facebookAccessToken) {
