@@ -588,6 +588,477 @@ export class FacebookMarketingAPI {
   async activateAdSet(adSetId: string): Promise<any> {
     return this.updateAdSet(adSetId, { status: 'ACTIVE' });
   }
+
+  /**
+   * Create a creative on Facebook
+   */
+  async createCreative(adAccountId: string, creativeData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/act_${adAccountId}/adcreatives`;
+      
+      // Prepare creative payload
+      const payload: any = {
+        name: creativeData.name,
+        access_token: this.accessToken,
+      };
+
+      // Add object_story_id if provided (for page post ads)
+      if (creativeData.object_story_id) {
+        payload.object_story_id = creativeData.object_story_id;
+      }
+
+      // Add object_story_spec if provided
+      if (creativeData.object_story_spec) {
+        payload.object_story_spec = JSON.stringify(creativeData.object_story_spec);
+      }
+
+      // Add asset_feed_spec if provided
+      if (creativeData.asset_feed_spec) {
+        payload.asset_feed_spec = JSON.stringify(creativeData.asset_feed_spec);
+      }
+
+      // Add template_url if provided
+      if (creativeData.template_url) {
+        payload.template_url = creativeData.template_url;
+      }
+
+      // Add url_tags if provided
+      if (creativeData.url_tags) {
+        payload.url_tags = creativeData.url_tags;
+      }
+
+      // Add degrees_of_freedom_spec if provided
+      if (creativeData.degrees_of_freedom_spec) {
+        payload.degrees_of_freedom_spec = JSON.stringify(creativeData.degrees_of_freedom_spec);
+      }
+
+      // Add status if provided
+      if (creativeData.status) {
+        payload.status = creativeData.status;
+      }
+
+      // Add optional fields
+      if (creativeData.adlabels) {
+        payload.adlabels = JSON.stringify(creativeData.adlabels);
+      }
+      if (creativeData.applink_treatment) {
+        payload.applink_treatment = creativeData.applink_treatment;
+      }
+      if (creativeData.authorization_category) {
+        payload.authorization_category = creativeData.authorization_category;
+      }
+      if (creativeData.auto_update !== undefined) {
+        payload.auto_update = creativeData.auto_update;
+      }
+      if (creativeData.branded_content_sponsor_page_id) {
+        payload.branded_content_sponsor_page_id = creativeData.branded_content_sponsor_page_id;
+      }
+      if (creativeData.bundle_folder_id) {
+        payload.bundle_folder_id = creativeData.bundle_folder_id;
+      }
+      if (creativeData.call_to_action_type) {
+        payload.call_to_action_type = creativeData.call_to_action_type;
+      }
+      if (creativeData.categorization_criteria) {
+        payload.categorization_criteria = creativeData.categorization_criteria;
+      }
+      if (creativeData.category_media_source) {
+        payload.category_media_source = creativeData.category_media_source;
+      }
+      if (creativeData.destination_set_id) {
+        payload.destination_set_id = creativeData.destination_set_id;
+      }
+      if (creativeData.dynamic_ad_voice) {
+        payload.dynamic_ad_voice = creativeData.dynamic_ad_voice;
+      }
+      if (creativeData.enable_direct_install !== undefined) {
+        payload.enable_direct_install = creativeData.enable_direct_install;
+      }
+      if (creativeData.enable_launch_instant_app !== undefined) {
+        payload.enable_launch_instant_app = creativeData.enable_launch_instant_app;
+      }
+      if (creativeData.image_crops) {
+        payload.image_crops = JSON.stringify(creativeData.image_crops);
+      }
+      if (creativeData.image_hash) {
+        payload.image_hash = creativeData.image_hash;
+      }
+      if (creativeData.image_url) {
+        payload.image_url = creativeData.image_url;
+      }
+      if (creativeData.instagram_actor_id) {
+        payload.instagram_actor_id = creativeData.instagram_actor_id;
+      }
+      if (creativeData.instagram_permalink_url) {
+        payload.instagram_permalink_url = creativeData.instagram_permalink_url;
+      }
+      if (creativeData.instagram_story_id) {
+        payload.instagram_story_id = creativeData.instagram_story_id;
+      }
+      if (creativeData.instagram_user_id) {
+        payload.instagram_user_id = creativeData.instagram_user_id;
+      }
+      if (creativeData.interactive_components_spec) {
+        payload.interactive_components_spec = JSON.stringify(creativeData.interactive_components_spec);
+      }
+      if (creativeData.link_deep_link_url) {
+        payload.link_deep_link_url = creativeData.link_deep_link_url;
+      }
+      if (creativeData.link_destination_display_url) {
+        payload.link_destination_display_url = creativeData.link_destination_display_url;
+      }
+      if (creativeData.link_og_id) {
+        payload.link_og_id = creativeData.link_og_id;
+      }
+      if (creativeData.link_url) {
+        payload.link_url = creativeData.link_url;
+      }
+      if (creativeData.messenger_sponsored_message) {
+        payload.messenger_sponsored_message = creativeData.messenger_sponsored_message;
+      }
+      if (creativeData.modal_dialog !== undefined) {
+        payload.modal_dialog = creativeData.modal_dialog;
+      }
+      if (creativeData.place_page_set_id) {
+        payload.place_page_set_id = creativeData.place_page_set_id;
+      }
+      if (creativeData.platform_customizations) {
+        payload.platform_customizations = JSON.stringify(creativeData.platform_customizations);
+      }
+      if (creativeData.playable_asset_id) {
+        payload.playable_asset_id = creativeData.playable_asset_id;
+      }
+      if (creativeData.portrait_customizations) {
+        payload.portrait_customizations = JSON.stringify(creativeData.portrait_customizations);
+      }
+      if (creativeData.product_set_id) {
+        payload.product_set_id = creativeData.product_set_id;
+      }
+      if (creativeData.recommender_settings) {
+        payload.recommender_settings = JSON.stringify(creativeData.recommender_settings);
+      }
+      if (creativeData.source_instagram_media_id) {
+        payload.source_instagram_media_id = creativeData.source_instagram_media_id;
+      }
+      if (creativeData.thumbnail_url) {
+        payload.thumbnail_url = creativeData.thumbnail_url;
+      }
+      if (creativeData.title) {
+        payload.title = creativeData.title;
+      }
+      if (creativeData.use_page_actor_override !== undefined) {
+        payload.use_page_actor_override = creativeData.use_page_actor_override;
+      }
+      if (creativeData.video_id) {
+        payload.video_id = creativeData.video_id;
+      }
+
+      console.log('Creating Facebook creative with payload:', payload);
+
+      const response: AxiosResponse = await axios.post(url, payload, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      console.log('Facebook creative created successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API createCreative error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to create creative: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get a creative from Facebook
+   */
+  async getCreative(creativeId: string, fields?: string[]): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${creativeId}`;
+      
+      const params: any = {
+        access_token: this.accessToken,
+      };
+
+      // Add fields if provided
+      if (fields && fields.length > 0) {
+        params.fields = fields.join(',');
+      } else {
+        // Default fields to retrieve
+        params.fields = 'id,name,object_story_id,object_story_spec,asset_feed_spec,template_url,url_tags,degrees_of_freedom_spec,status,adlabels,applink_treatment,authorization_category,auto_update,branded_content_sponsor_page_id,bundle_folder_id,call_to_action_type,categorization_criteria,category_media_source,destination_set_id,dynamic_ad_voice,effective_authorization_category,effective_instagram_media_id,effective_instagram_story_id,enable_direct_install,enable_launch_instant_app,image_crops,image_hash,image_url,instagram_actor_id,instagram_permalink_url,instagram_story_id,instagram_user_id,interactive_components_spec,link_deep_link_url,link_destination_display_url,link_og_id,link_url,messenger_sponsored_message,modal_dialog,place_page_set_id,platform_customizations,playable_asset_id,portrait_customizations,product_set_id,recommender_settings,source_instagram_media_id,thumbnail_url,title,use_page_actor_override,video_id,created_time,updated_time';
+      }
+
+      console.log('Fetching Facebook creative:', creativeId);
+
+      const response: AxiosResponse = await axios.get(url, { params });
+
+      console.log('Facebook creative fetched successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getCreative error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to fetch creative: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update a creative on Facebook
+   */
+  async updateCreative(creativeId: string, updateData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${creativeId}`;
+      
+      const payload: any = {
+        access_token: this.accessToken,
+      };
+
+      // Add updatable fields
+      if (updateData.name) {
+        payload.name = updateData.name;
+      }
+      if (updateData.status) {
+        payload.status = updateData.status;
+      }
+      if (updateData.adlabels) {
+        payload.adlabels = JSON.stringify(updateData.adlabels);
+      }
+      if (updateData.authorization_category) {
+        payload.authorization_category = updateData.authorization_category;
+      }
+      if (updateData.categorization_criteria) {
+        payload.categorization_criteria = updateData.categorization_criteria;
+      }
+      if (updateData.run_status) {
+        payload.run_status = updateData.run_status;
+      }
+
+      console.log('Updating Facebook creative:', creativeId, 'with payload:', payload);
+
+      const response: AxiosResponse = await axios.post(url, payload, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      console.log('Facebook creative updated successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API updateCreative error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to update creative: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a creative from Facebook
+   */
+  async deleteCreative(creativeId: string): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${creativeId}`;
+      
+      const payload = {
+        access_token: this.accessToken,
+      };
+
+      console.log('Deleting Facebook creative:', creativeId);
+
+      const response: AxiosResponse = await axios.delete(url, { data: payload });
+
+      console.log('Facebook creative deleted successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API deleteCreative error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to delete creative: ${error.message}`);
+    }
+  }
+
+  /**
+   * List creatives from Facebook ad account
+   */
+  async getCreatives(adAccountId: string, fields?: string[], limit?: number, after?: string): Promise<any> {
+    try {
+      const url = `${this.baseURL}/act_${adAccountId}/adcreatives`;
+      
+      const params: any = {
+        access_token: this.accessToken,
+      };
+
+      // Add fields if provided
+      if (fields && fields.length > 0) {
+        params.fields = fields.join(',');
+      } else {
+        // Default fields to retrieve
+        params.fields = 'id,name,object_story_id,status,created_time,updated_time';
+      }
+
+      // Add pagination
+      if (limit) {
+        params.limit = limit;
+      }
+      if (after) {
+        params.after = after;
+      }
+
+      console.log('Fetching Facebook creatives for account:', adAccountId);
+
+      const response: AxiosResponse = await axios.get(url, { params });
+
+      console.log(`Facebook creatives fetched successfully. Count: ${response.data.data?.length || 0}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getCreatives error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to fetch creatives: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generate creative preview
+   */
+  async generateCreativePreview(adAccountId: string, previewData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/act_${adAccountId}/generatepreviews`;
+      
+      const payload: any = {
+        ad_format: previewData.ad_format,
+        access_token: this.accessToken,
+      };
+
+      // Add creative_id or creative_spec
+      if (previewData.creative_id) {
+        payload.creative_id = previewData.creative_id;
+      } else if (previewData.creative_spec) {
+        payload.creative = JSON.stringify(previewData.creative_spec);
+      }
+
+      // Add optional fields
+      if (previewData.product_item_ids) {
+        payload.product_item_ids = JSON.stringify(previewData.product_item_ids);
+      }
+      if (previewData.place_page_id) {
+        payload.place_page_id = previewData.place_page_id;
+      }
+      if (previewData.post_id) {
+        payload.post_id = previewData.post_id;
+      }
+      if (previewData.end_date) {
+        payload.end_date = previewData.end_date;
+      }
+      if (previewData.start_date) {
+        payload.start_date = previewData.start_date;
+      }
+      if (previewData.interactive_components_spec) {
+        payload.interactive_components_spec = JSON.stringify(previewData.interactive_components_spec);
+      }
+      if (previewData.locale) {
+        payload.locale = previewData.locale;
+      }
+      if (previewData.dynamic_creative_spec) {
+        payload.dynamic_creative_spec = JSON.stringify(previewData.dynamic_creative_spec);
+      }
+      if (previewData.dynamic_asset_spec) {
+        payload.dynamic_asset_spec = JSON.stringify(previewData.dynamic_asset_spec);
+      }
+
+      console.log('Generating Facebook creative preview with payload:', payload);
+
+      const response: AxiosResponse = await axios.get(url, { params: payload });
+
+      console.log('Facebook creative preview generated successfully');
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API generateCreativePreview error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to generate creative preview: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get creative insights
+   */
+  async getCreativeInsights(creativeId: string, insightsParams: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${creativeId}/insights`;
+      
+      const params: any = {
+        access_token: this.accessToken,
+      };
+
+      // Add time range
+      if (insightsParams.time_range) {
+        params.time_range = JSON.stringify(insightsParams.time_range);
+      }
+      if (insightsParams.date_preset) {
+        params.date_preset = insightsParams.date_preset;
+      }
+
+      // Add fields
+      if (insightsParams.fields && insightsParams.fields.length > 0) {
+        params.fields = insightsParams.fields.join(',');
+      } else {
+        // Default insight fields
+        params.fields = 'impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions,cost_per_action_type';
+      }
+
+      // Add filtering
+      if (insightsParams.filtering) {
+        params.filtering = JSON.stringify(insightsParams.filtering);
+      }
+
+      // Add breakdowns
+      if (insightsParams.breakdowns) {
+        params.breakdowns = insightsParams.breakdowns.join(',');
+      }
+
+      // Add sorting
+      if (insightsParams.sort) {
+        params.sort = insightsParams.sort.join(',');
+      }
+
+      // Add level
+      if (insightsParams.level) {
+        params.level = insightsParams.level;
+      }
+
+      // Add pagination
+      if (insightsParams.limit) {
+        params.limit = insightsParams.limit;
+      }
+      if (insightsParams.after) {
+        params.after = insightsParams.after;
+      }
+      if (insightsParams.before) {
+        params.before = insightsParams.before;
+      }
+
+      console.log('Fetching Facebook creative insights for:', creativeId);
+
+      const response: AxiosResponse = await axios.get(url, { params });
+
+      console.log(`Facebook creative insights fetched successfully. Count: ${response.data.data?.length || 0}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getCreativeInsights error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      }
+      throw new Error(`Failed to fetch creative insights: ${error.message}`);
+    }
+  }
 }
 
 /**
