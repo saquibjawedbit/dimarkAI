@@ -8,7 +8,7 @@ export interface IAdSet extends Document {
   optimizationGoal: string;
   billingEvent: string;
   bidStrategy: string;
-  bidAmount: number;
+  bidAmount?: number; // Optional since not all strategies require it
   dailyBudget?: number;
   lifetimeBudget?: number;
   status: 'ACTIVE' | 'PAUSED';
@@ -30,7 +30,7 @@ const AdSetSchema = new Schema<IAdSet>({
   optimizationGoal: { type: String, required: true },
   billingEvent: { type: String, required: true },
   bidStrategy: { type: String, required: true, default: 'LOWEST_COST_WITHOUT_CAP' },
-  bidAmount: { type: Number, required: true },
+  bidAmount: { type: Number, required: false }, // Optional since not all strategies require it
   dailyBudget: { type: Number },
   lifetimeBudget: { type: Number },
   status: { type: String, enum: ['ACTIVE', 'PAUSED'], default: 'PAUSED' },

@@ -46,7 +46,7 @@ export interface CreateAdSetRequest {
   optimizationGoal: OptimizationGoal;
   billingEvent: BillingEvent;
   bidStrategy: BidStrategy;
-  bidAmount: number;
+  bidAmount?: number; // Optional since it's not required for all strategies
   dailyBudget?: number;
   lifetimeBudget?: number;
   status?: 'ACTIVE' | 'PAUSED';

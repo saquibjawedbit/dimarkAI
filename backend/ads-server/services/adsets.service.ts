@@ -28,10 +28,21 @@ export class AdSetService {
   }
 
   async createAdSet(userId: string, adSetData: CreateAdSetRequest & { facebookAdAccountId: string }): Promise<IAdSet> {
+    // Start a session for transaction
+    const session = await AdSet.startSession();
+    session.startTransaction();
     try {
+      // Prepare data for local database - exclude bidAmount if not needed for strategy
+      const localAdSetData: any = { ...adSetData, userId };
+      
+      // For LOWEST_COST_WITHOUT_CAP strategy, don't store bidAmount
+      if (adSetData.bidStrategy === 'LOWEST_COST_WITHOUT_CAP') {
+        delete localAdSetData.bidAmount;
+      }
+      
       // Save to local database first
-      const adSet = new AdSet({ ...adSetData, userId });
-      await adSet.save();
+      const adSet = new AdSet(localAdSetData);
+      await adSet.save({ session });
 
       // Create ad set on Facebook
       try {
@@ -42,6 +53,8 @@ export class AdSetService {
         
         if (!campaign?.facebookCampaignId) {
           console.log('Campaign not linked to Facebook, skipping Facebook ad set creation');
+          await session.commitTransaction();
+          session.endSession();
           return adSet;
         }
 
@@ -81,6 +94,7 @@ export class AdSetService {
             if (adSetData.bidAmount && adSetData.bidAmount > 0) {
               throw new Error('Bid amount cannot be set with LOWEST_COST_WITHOUT_CAP strategy');
             }
+            // Don't add bid_amount to facebookAdSetData at all
           } else if (adSetData.bidStrategy === 'LOWEST_COST_WITH_MIN_ROAS') {
             // This strategy might require bid amount or ROAS target
             if (adSetData.bidAmount && adSetData.bidAmount > 0) {
@@ -92,14 +106,24 @@ export class AdSetService {
           facebookAdSetData.bid_strategy = 'LOWEST_COST_WITHOUT_CAP';
         }
 
-        // Handle budget - only use ONE budget type (daily OR lifetime, not both)
-        if (adSetData.dailyBudget && adSetData.dailyBudget > 0) {
-          facebookAdSetData.daily_budget = Math.round(adSetData.dailyBudget * 100);
-        } else if (adSetData.lifetimeBudget && adSetData.lifetimeBudget > 0) {
-          facebookAdSetData.lifetime_budget = Math.round(adSetData.lifetimeBudget * 100);
+        // Handle budget - check if campaign has budget set first
+        // If campaign has budget, ad set cannot have budget (Facebook constraint)
+        const campaignHasBudget = (campaign.dailyBudget && campaign.dailyBudget > 0) || 
+                                 (campaign.lifetimeBudget && campaign.lifetimeBudget > 0);
+        
+        if (campaignHasBudget) {
+          console.log('Campaign has budget set, skipping ad set budget to avoid Facebook API conflict');
+          // Don't set any budget on ad set if campaign has budget
         } else {
-          // Default to daily budget if neither is provided
-          facebookAdSetData.daily_budget = 1000; // $10/day minimum
+          // Only set ad set budget if campaign doesn't have one
+          if (adSetData.dailyBudget && adSetData.dailyBudget > 0) {
+            facebookAdSetData.daily_budget = Math.round(adSetData.dailyBudget * 100);
+          } else if (adSetData.lifetimeBudget && adSetData.lifetimeBudget > 0) {
+            facebookAdSetData.lifetime_budget = Math.round(adSetData.lifetimeBudget * 100);
+          } else {
+            // Default to daily budget if neither is provided and campaign has no budget
+            facebookAdSetData.daily_budget = 1000; // $10/day minimum
+          }
         }
 
         // Handle targeting with validation
@@ -147,21 +171,33 @@ export class AdSetService {
           }
         }
 
-        console.log('Creating Facebook ad set with validated data:', JSON.stringify(facebookAdSetData, null, 2));
-
+        
+        // Double-check: ensure bid_amount is not in the payload for LOWEST_COST_WITHOUT_CAP
+        if (facebookAdSetData.bid_strategy === 'LOWEST_COST_WITHOUT_CAP' && 'bid_amount' in facebookAdSetData) {
+          console.error('ERROR: bid_amount found in payload for LOWEST_COST_WITHOUT_CAP strategy, removing it');
+          delete facebookAdSetData.bid_amount;
+        }
+        
         const facebookAdSet = await facebookAPI.createAdSet(adSetData.facebookAdAccountId, facebookAdSetData);
 
         // Update local record with Facebook ID
         adSet.facebookAdSetId = facebookAdSet.id;
         adSet.facebookCampaignId = campaign.facebookCampaignId;
-        await adSet.save();
+        await adSet.save({ session });
       } catch (facebookError) {
         console.error('Facebook API Error while creating ad set:', facebookError);
-        // Don't throw error - keep local record even if Facebook creation fails
+        // Rollback local DB if Facebook creation fails
+        await session.abortTransaction();
+        session.endSession();
+        throw facebookError;
       }
 
+      await session.commitTransaction();
+      session.endSession();
       return adSet;
     } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
       console.error('Error creating ad set:', error);
       throw error;
     }
@@ -181,7 +217,7 @@ export class AdSetService {
         if (campaign?.facebookCampaignId) {
           // Use the Facebook campaign ID to fetch ad sets
           const facebookAdSets = await facebookAPI.getAdSetsByCampaign(campaign.facebookCampaignId);
-          console.log(`Fetched ${facebookAdSets.length} ad sets from Facebook for campaign ${campaign.facebookCampaignId}`);
+          console.log(facebookAdSets);
         } else {
           console.log('Campaign not linked to Facebook or missing Facebook IDs');
         }

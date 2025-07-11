@@ -272,9 +272,10 @@ export class FacebookMarketingAPI {
         throw new Error('Missing required fields for ad set creation: name, campaign_id, optimization_goal, billing_event, targeting, start_time, end_time');
       }
 
-      // Validate budget
+      // Validate budget (allow no budget if campaign has budget)
       if (!adSetData.daily_budget && !adSetData.lifetime_budget) {
-        throw new Error('Either daily_budget or lifetime_budget must be specified');
+        console.log('No budget specified for ad set - this is allowed if campaign has budget');
+        // Don't throw error - this is valid when campaign has budget
       }
 
       if (adSetData.daily_budget && adSetData.lifetime_budget) {
@@ -308,34 +309,40 @@ export class FacebookMarketingAPI {
         // Validate bid amount based on strategy
         if (adSetData.bid_strategy === 'LOWEST_COST_WITHOUT_CAP') {
           // No bid amount should be set for this strategy
-          if (adSetData.bid_amount) {
+          if (adSetData.bid_amount && adSetData.bid_amount > 0) {
             throw new Error('Bid amount cannot be set with LOWEST_COST_WITHOUT_CAP strategy');
           }
+          // Don't add bid_amount to payload at all for this strategy
         } else if (adSetData.bid_strategy === 'LOWEST_COST_WITH_BID_CAP' || 
                    adSetData.bid_strategy === 'COST_CAP') {
           // Bid amount is required for these strategies
-          if (!adSetData.bid_amount) {
+          if (!adSetData.bid_amount || adSetData.bid_amount <= 0) {
             throw new Error(`Bid amount is required for bid strategy: ${adSetData.bid_strategy}`);
           }
           payload.bid_amount = adSetData.bid_amount;
         } else if (adSetData.bid_strategy === 'LOWEST_COST_WITH_MIN_ROAS') {
           // Bid amount is optional for this strategy
-          if (adSetData.bid_amount) {
+          if (adSetData.bid_amount && adSetData.bid_amount > 0) {
             payload.bid_amount = adSetData.bid_amount;
           }
         }
       } else {
         // Default to LOWEST_COST_WITHOUT_CAP if no strategy provided
         payload.bid_strategy = 'LOWEST_COST_WITHOUT_CAP';
+        // Don't add bid_amount for default strategy
       }
 
       // Add promoted object if provided and valid
       if (adSetData.promoted_object && typeof adSetData.promoted_object === 'object') {
         payload.promoted_object = adSetData.promoted_object;
       }
-
-      console.log('Facebook API createAdSet URL:', url);
-      console.log('Facebook API createAdSet payload:', JSON.stringify(payload, null, 2));
+      
+      // Final safety check: remove bid_amount if strategy is LOWEST_COST_WITHOUT_CAP
+      if (payload.bid_strategy === 'LOWEST_COST_WITHOUT_CAP' && 'bid_amount' in payload) {
+        console.warn('WARNING: Removing bid_amount from payload for LOWEST_COST_WITHOUT_CAP strategy');
+        delete payload.bid_amount;
+      }
+      
 
       const response: AxiosResponse = await axios.post(url, payload);
       return response.data;

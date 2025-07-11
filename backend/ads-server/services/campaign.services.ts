@@ -1,7 +1,7 @@
 import { Campaign, ICampaign } from '../../common/models/Campaign';
-import { 
-  CreateCampaignRequest, 
-  UpdateCampaignRequest, 
+import {
+  CreateCampaignRequest,
+  UpdateCampaignRequest,
   FacebookCampaignResponse,
   CampaignInsights,
   CampaignFilters,
@@ -48,11 +48,13 @@ export class CampaignService {
     }
     return this.facebookAPI;
   }
-  
+
   /**
    * Create a new campaign
    */
   async createCampaign(userId: string, campaignData: CreateCampaignRequest): Promise<ICampaign> {
+    const session = await Campaign.startSession();
+    session.startTransaction();
     try {
       // Validate required fields
       if (!campaignData.name || !campaignData.objective || !campaignData.facebookAdAccountId) {
@@ -76,24 +78,16 @@ export class CampaignService {
         specialAdCategories: campaignData.specialAdCategories || [],
       });
 
-      const savedCampaign = await campaign.save();
-
-      // Create campaign on Facebook (if needed)
-      if (campaignData.status) {
-        try {
-          const facebookCampaignId = await this.createFacebookCampaign(savedCampaign);
-          savedCampaign.facebookCampaignId = facebookCampaignId;
-          await savedCampaign.save();
-        } catch (error) {
-          console.error('Failed to create Facebook campaign:', error);
-          // Keep the local campaign but mark as paused
-          savedCampaign.status = 'PAUSED';
-          await savedCampaign.save();
-        }
-      }
-
+      const savedCampaign = await campaign.save({ session });
+      const facebookCampaignId = await this.createFacebookCampaign(savedCampaign);
+      savedCampaign.facebookCampaignId = facebookCampaignId;
+      await savedCampaign.save({ session });
+      await session.commitTransaction();
+      session.endSession();
       return savedCampaign;
     } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
       console.error('Error creating campaign:', error);
       throw error;
     }
@@ -103,8 +97,8 @@ export class CampaignService {
    * Get campaigns with filtering and pagination
    */
   async getCampaigns(
-    userId: string, 
-    filters: CampaignFilters = {}, 
+    userId: string,
+    filters: CampaignFilters = {},
     pagination: PaginationParams = { page: 1, limit: 10 }
   ): Promise<PaginatedResponse<ICampaign>> {
     try {
@@ -185,7 +179,7 @@ export class CampaignService {
 
       // Prepare update object
       const updateObj: any = {};
-      
+
       if (updateData.name !== undefined) updateObj.name = updateData.name;
       if (updateData.status !== undefined) updateObj.status = updateData.status;
       if (updateData.dailyBudget !== undefined) updateObj.dailyBudget = updateData.dailyBudget;
@@ -330,9 +324,9 @@ export class CampaignService {
       for (const fbCampaign of facebookCampaigns) {
         try {
           // Check if campaign already exists
-          let campaign = await Campaign.findOne({ 
+          let campaign = await Campaign.findOne({
             facebookCampaignId: fbCampaign.id,
-            userId 
+            userId
           });
 
           if (!campaign) {
@@ -391,7 +385,7 @@ export class CampaignService {
       });
 
       console.log('Facebook Campaign Creation Response:', facebookResponse);
-      
+
       return facebookResponse.id;
     } catch (error) {
       console.error('Failed to create Facebook campaign:', error);
@@ -423,7 +417,7 @@ export class CampaignService {
     try {
       const facebookAPI = await this.ensureFacebookAPI();
       const insights = await facebookAPI.getCampaignInsights(facebookCampaignId, dateRange);
-      
+
       return {
         impressions: parseInt(insights.impressions || '0'),
         clicks: parseInt(insights.clicks || '0'),
@@ -459,7 +453,7 @@ export class CampaignService {
       const facebookAPI = await this.ensureFacebookAPI();
       const adAccountId = facebookAdAccountId.replace('act_', '');
       const campaigns = await facebookAPI.getCampaigns(adAccountId);
-      
+
       return campaigns.map((campaign: any) => ({
         id: campaign.id,
         name: campaign.name,
