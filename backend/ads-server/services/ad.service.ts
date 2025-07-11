@@ -1,5 +1,6 @@
 import { FacebookMarketingAPI } from '../utils/facebook-api.util';
 import { Ad, IAd } from '../../common/models/Ad';
+import { AdSet } from '../../common/models/AdSet';
 
 export interface CreateAdRequest {
   name: string;
