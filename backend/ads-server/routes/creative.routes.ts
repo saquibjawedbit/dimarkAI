@@ -99,4 +99,11 @@ router.post('/bulk-update', creativeController.bulkUpdateCreatives);
  */
 router.post('/bulk-delete', creativeController.bulkDeleteCreatives);
 
+/**
+ * @route   GET /api/creatives/pages
+ * @desc    Get user's Facebook Pages
+ * @access  Private
+ */
+router.get('/pages', creativeController.getUserPages);
+
 export default router;

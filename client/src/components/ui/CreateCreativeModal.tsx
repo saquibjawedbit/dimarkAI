@@ -55,6 +55,26 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
     }
   });
 
+  const [availablePages, setAvailablePages] = useState<any[]>([]);
+  const [loadingPages, setLoadingPages] = useState(false);
+  const [showPages, setShowPages] = useState(false);
+
+  // Load available pages
+  const loadAvailablePages = async () => {
+    setLoadingPages(true);
+    try {
+      const response = await creativeService.getUserPages();
+      if (response.data) {
+        setAvailablePages(response.data);
+        setShowPages(true);
+      }
+    } catch (err) {
+      console.error('Failed to load available pages:', err);
+    } finally {
+      setLoadingPages(false);
+    }
+  };
+
   // Load creative constants
   useEffect(() => {
     const loadConstants = async () => {
@@ -524,8 +544,58 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                   1. Go to your Facebook Page<br/>
                   2. Click "About" in the left sidebar<br/>
                   3. Scroll down to find "Page ID" or "Facebook Page ID"<br/>
-                  4. It should be a long number (e.g., 123456789012345)
+                  4. It should be a long number (e.g., 123456789012345)<br/>
+                  <br/>
+                  <strong>Important:</strong> You must have admin access to the page and permission to create ads for it.
                 </p>
+                <div className="mt-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={loadAvailablePages}
+                    disabled={loadingPages}
+                  >
+                    {loadingPages ? 'Loading...' : 'Show My Available Pages'}
+                  </Button>
+                </div>
+                {showPages && availablePages.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-blue-800 mb-2">Your Available Pages:</p>
+                    <div className="max-h-32 overflow-y-auto">
+                      {availablePages.map((page: any) => (
+                        <div key={page.id} className="flex items-center justify-between p-2 bg-white rounded border mb-1">
+                          <div>
+                            <span className="font-medium">{page.name}</span>
+                            <span className="text-gray-500 ml-2">({page.id})</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                object_story_spec: {
+                                  ...prev.object_story_spec,
+                                  page_id: page.id
+                                }
+                              }));
+                              setShowPages(false);
+                            }}
+                          >
+                            Use This Page
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {showPages && availablePages.length === 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm text-red-600">No pages found with advertising permissions.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

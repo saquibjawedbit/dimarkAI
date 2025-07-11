@@ -374,4 +374,17 @@ export const creativeService = {
   getCreativeConstants: async (): Promise<ApiResponse<CreativeConstants>> => {
     return apiService.get<CreativeConstants>('/api/creatives/constants');
   },
+
+  /**
+   * Get user's available Facebook Pages
+   */
+  getUserPages: async (): Promise<ApiResponse<any[]>> => {
+    try {
+      const response = await apiService.get('/api/creatives/pages');
+      return response.data as ApiResponse<any[]>;
+    } catch (error: any) {
+      console.error('Error fetching user Facebook Pages:', error);
+      throw error;
+    }
+  },
 };

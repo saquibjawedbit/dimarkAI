@@ -584,4 +584,34 @@ export class CreativeController {
       } as ApiResponse);
     }
   };
+
+  /**
+   * Get user's available Facebook Pages
+   */
+  getUserPages = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, message: 'User not authenticated' } as ApiResponse);
+        return;
+      }
+
+      const creativeService = this.createCreativeService(userId);
+      const facebookAPI = await (creativeService as any).ensureFacebookAPI();
+      
+      const pages = await facebookAPI.getUserPages();
+      
+      res.status(200).json({
+        success: true,
+        message: 'Facebook Pages fetched successfully',
+        data: pages
+      } as ApiResponse);
+    } catch (error: any) {
+      console.error('Error fetching user Facebook Pages:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to fetch Facebook Pages: ${error.message}` 
+      } as ApiResponse);
+    }
+  };
 }

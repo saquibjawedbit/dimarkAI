@@ -608,6 +608,23 @@ export class FacebookMarketingAPI {
           throw new Error('Page ID is required in object_story_spec');
         }
         
+        // Validate Page ID format
+        const pageId = creativeData.object_story_spec.page_id;
+        if (!/^\d+$/.test(pageId)) {
+          throw new Error('Page ID must be a valid numeric string');
+        }
+        
+        // Validate page access before proceeding
+        console.log(`Validating page access for Page ID: ${pageId}`);
+        const hasPageAccess = await this.validatePageAccess(pageId);
+        if (!hasPageAccess) {
+          throw new Error('Invalid Facebook Page or insufficient permissions. Please ensure:\n' +
+                          '- The Page ID is correct\n' +
+                          '- You have admin access to the Facebook Page\n' +
+                          '- The Page is published and active\n' +
+                          '- Your access token has the necessary permissions for this Page');
+        }
+        
         // Validate that only one data type is present
         const hasLinkData = creativeData.object_story_spec.link_data && Object.keys(creativeData.object_story_spec.link_data).length > 0;
         const hasPhotoData = creativeData.object_story_spec.photo_data && Object.keys(creativeData.object_story_spec.photo_data).length > 0;
@@ -817,10 +834,26 @@ export class FacebookMarketingAPI {
         let errorMessage = fbError.message;
         if (fbError.code === 100) {
           errorMessage = `Invalid parameter: ${fbError.message}`;
+          
+          // Handle specific parameter errors
+          if (fbError.message.includes('Page is missing') || fbError.error_user_title === 'Facebook Page is missing') {
+            errorMessage = 'Facebook Page is missing or invalid. Please check:\n' +
+                          '- The Page ID is correct and numeric\n' +
+                          '- You have admin access to the Facebook Page\n' +
+                          '- The Page is published and active\n' +
+                          '- Your access token has the necessary permissions for this Page';
+          } else if (fbError.message.includes('Invalid page')) {
+            errorMessage = 'Invalid Facebook Page ID. Please ensure:\n' +
+                          '- The Page ID is correct (numeric only)\n' +
+                          '- You have admin access to the Page\n' +
+                          '- The Page exists and is published';
+          }
         } else if (fbError.code === 190) {
           errorMessage = `Invalid access token: ${fbError.message}`;
         } else if (fbError.code === 200) {
           errorMessage = `Permissions error: ${fbError.message}`;
+        } else if (fbError.code === 613) {
+          errorMessage = 'API rate limit exceeded. Please try again later.';
         }
         
         throw new Error(`Facebook API Error (${fbError.code}): ${errorMessage}`);
@@ -1115,6 +1148,79 @@ export class FacebookMarketingAPI {
         throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
       }
       throw new Error(`Failed to fetch creative insights: ${error.message}`);
+    }
+  }
+
+  /**
+   * Validate Facebook Page access
+   */
+  async validatePageAccess(pageId: string): Promise<boolean> {
+    try {
+      const url = `${this.baseURL}/${pageId}`;
+      
+      const response: AxiosResponse = await axios.get(url, {
+        params: {
+          fields: 'id,name,access_token,tasks',
+          access_token: this.accessToken,
+        },
+      });
+
+      // Check if user has necessary permissions
+      const page = response.data;
+      const tasks = page.tasks || [];
+      
+      // Check if user has ADVERTISE or MANAGE tasks
+      const hasAdvertisePermission = tasks.includes('ADVERTISE') || tasks.includes('MANAGE');
+      
+      if (!hasAdvertisePermission) {
+        console.warn(`User does not have advertise permission for page ${pageId}`);
+        return false;
+      }
+
+      console.log(`Page validation successful for ${pageId}: ${page.name}`);
+      return true;
+    } catch (error: any) {
+      console.error(`Page validation failed for ${pageId}:`, error);
+      if (error.response?.data?.error) {
+        const fbError = error.response.data.error;
+        console.error('Facebook Page validation error:', fbError);
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Get user's available Facebook Pages
+   */
+  async getUserPages(): Promise<any[]> {
+    try {
+      const url = `${this.baseURL}/me/accounts`;
+      
+      const response: AxiosResponse = await axios.get(url, {
+        params: {
+          fields: 'id,name,access_token,tasks,category,can_post,fan_count',
+          access_token: this.accessToken,
+        },
+      });
+
+      const pages = response.data.data || [];
+      console.log(`Found ${pages.length} Facebook Pages for user`);
+      
+      // Log pages with advertise permission
+      const advertisablePages = pages.filter((page: any) => 
+        page.tasks && (page.tasks.includes('ADVERTISE') || page.tasks.includes('MANAGE'))
+      );
+      
+      console.log(`User has advertise permission for ${advertisablePages.length} pages:`, 
+                  advertisablePages.map((p: any) => `${p.name} (${p.id})`));
+      
+      return pages;
+    } catch (error: any) {
+      console.error('Failed to fetch user pages:', error);
+      if (error.response?.data?.error) {
+        console.error('Facebook API error:', error.response.data.error);
+      }
+      return [];
     }
   }
 }
