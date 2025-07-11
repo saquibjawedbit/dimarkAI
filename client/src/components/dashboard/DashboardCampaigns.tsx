@@ -275,10 +275,10 @@ export const DashboardCampaigns: React.FC = () => {
         fields: ['id', 'name', 'status', 'object_story_spec', 'asset_feed_spec', 'image_url', 'url_tags']
       });
 
-      if (response?.data?.data) {
-        setCreatives(response.data.data);
-        console.log('Creatives loaded successfully:', response.data.data.length, 'creatives');
-        console.log('Sample creative:', response.data.data[0]);
+      if (response?.data) {
+        setCreatives(response.data);
+        console.log('Creatives loaded successfully:', response.data.length, 'creatives');
+        console.log('Sample creative:', response.data[0]);
       } else {
         console.warn('No creatives data received:', response);
       }

@@ -272,7 +272,7 @@ export const creativeService = {
     fields?: string[];
     limit?: number;
     after?: string;
-  }): Promise<ApiResponse<CreativeListResponse>> => {
+  }): Promise<CreativeListResponse> => {
     const searchParams = new URLSearchParams();
     
     if (params?.fields) {
@@ -286,7 +286,7 @@ export const creativeService = {
     }
 
     const url = `/api/creatives${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    return apiService.get<CreativeListResponse>(url);
+    return apiService.get<CreativeListResponse>(url) as any;
   },
 
   // Get creative by ID
