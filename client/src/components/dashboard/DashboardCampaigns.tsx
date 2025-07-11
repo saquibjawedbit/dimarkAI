@@ -7,6 +7,7 @@ import { CreativeCard } from '../ui/CreativeCard';
 import { CreateCampaignModal } from '../ui/CreateCampaignModal';
 import { CreateCreativeModal } from '../ui/CreateCreativeModal';
 import { EditCampaignModal } from '../ui/EditCampaignModal';
+import { CreativePreviewModal } from '../ui/CreativePreviewModal';
 import { campaignService, Campaign as BackendCampaign } from '../../services/campaign';
 import { creativeService, Creative } from '../../services/creative';
 
@@ -217,7 +218,9 @@ export const DashboardCampaigns: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateCreativeModal, setShowCreateCreativeModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<BackendCampaign | null>(null);
+  const [previewCreative, setPreviewCreative] = useState<Creative | null>(null);
 
   // Convert backend campaign to component campaign format
   const mapBackendCampaign = (backendCampaign: BackendCampaign): Campaign => ({
@@ -447,8 +450,8 @@ export const DashboardCampaigns: React.FC = () => {
   };
 
   const handlePreviewCreative = (creative: Creative) => {
-    console.log('Previewing creative:', creative);
-    // TODO: Implement creative preview functionality
+    setPreviewCreative(creative);
+    setShowPreviewModal(true);
   };
 
   return (
@@ -657,6 +660,18 @@ export const DashboardCampaigns: React.FC = () => {
         onSuccess={loadCampaigns}
         campaign={editingCampaign}
       />
+
+      {/* Creative Preview Modal */}
+      {previewCreative && (
+        <CreativePreviewModal
+          isOpen={showPreviewModal}
+          onClose={() => {
+            setShowPreviewModal(false);
+            setPreviewCreative(null);
+          }}
+          creative={previewCreative}
+        />
+      )}
     </div>
   );
 };

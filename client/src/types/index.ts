@@ -41,6 +41,9 @@ export interface FacebookAdAccount {
   connected: boolean;
 }
 
+// Export Ad types
+export * from './ad.types';
+
 export interface AdCreative {
   id: string;
   userId: string;

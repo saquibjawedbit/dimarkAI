@@ -6,3 +6,4 @@ export { DashboardCampaigns } from './DashboardCampaigns';
 
 export { AdSetsPanel } from './AdSetsPanel';
 export { AdSetsManagement } from './AdSetsManagement';
+export { AdsManagement } from './AdsManagement';

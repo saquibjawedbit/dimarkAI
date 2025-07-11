@@ -1234,6 +1234,243 @@ export class FacebookMarketingAPI {
       return [];
     }
   }
+
+  /**
+   * Create an ad on Facebook
+   */
+  async createAd(adAccountId: string, adData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/act_${adAccountId}/ads`;
+      
+      const payload: any = {
+        name: adData.name,
+        adset_id: adData.adset_id,
+        creative: adData.creative,
+        status: adData.status || 'PAUSED',
+        access_token: this.accessToken
+      };
+
+      // Add optional fields
+      if (adData.tracking_specs) payload.tracking_specs = JSON.stringify(adData.tracking_specs);
+      if (adData.conversion_domain) payload.conversion_domain = adData.conversion_domain;
+      if (adData.adlabels) payload.adlabels = JSON.stringify(adData.adlabels);
+      if (adData.ad_schedule_start_time) payload.ad_schedule_start_time = adData.ad_schedule_start_time;
+      if (adData.ad_schedule_end_time) payload.ad_schedule_end_time = adData.ad_schedule_end_time;
+
+      console.log('Creating Facebook ad with payload:', payload);
+      
+      const response: AxiosResponse = await axios.post(url, payload);
+      console.log('Facebook ad created successfully:', response.data);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API createAd error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to create Facebook ad: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get ad by ID
+   */
+  async getAd(adId: string, fields: string[] = []): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adId}`;
+      
+      const params: any = {
+        access_token: this.accessToken
+      };
+
+      if (fields.length > 0) {
+        params.fields = fields.join(',');
+      }
+
+      const response: AxiosResponse = await axios.get(url, { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getAd error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to get Facebook ad: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get ads from ad account
+   */
+  async getAds(adAccountId: string, params: any = {}): Promise<any> {
+    try {
+      const url = `${this.baseURL}/act_${adAccountId}/ads`;
+      
+      const requestParams: any = {
+        access_token: this.accessToken,
+        limit: params.limit || 50
+      };
+
+      if (params.fields) {
+        requestParams.fields = Array.isArray(params.fields) ? params.fields.join(',') : params.fields;
+      }
+
+      if (params.after) {
+        requestParams.after = params.after;
+      }
+
+      if (params.filtering) {
+        requestParams.filtering = JSON.stringify(params.filtering);
+      }
+
+      const response: AxiosResponse = await axios.get(url, { params: requestParams });
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getAds error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to get Facebook ads: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get ads from ad set
+   */
+  async getAdsByAdSet(adSetId: string, params: any = {}): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adSetId}/ads`;
+      
+      const requestParams: any = {
+        access_token: this.accessToken,
+        limit: params.limit || 50
+      };
+
+      if (params.fields) {
+        requestParams.fields = Array.isArray(params.fields) ? params.fields.join(',') : params.fields;
+      }
+
+      if (params.after) {
+        requestParams.after = params.after;
+      }
+
+      const response: AxiosResponse = await axios.get(url, { params: requestParams });
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getAdsByAdSet error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to get Facebook ads by ad set: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Update ad
+   */
+  async updateAd(adId: string, updateData: any): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adId}`;
+      
+      const payload: any = {
+        access_token: this.accessToken
+      };
+
+      if (updateData.name) payload.name = updateData.name;
+      if (updateData.status) payload.status = updateData.status;
+      if (updateData.tracking_specs) payload.tracking_specs = JSON.stringify(updateData.tracking_specs);
+      if (updateData.conversion_domain) payload.conversion_domain = updateData.conversion_domain;
+      if (updateData.adlabels) payload.adlabels = JSON.stringify(updateData.adlabels);
+      if (updateData.ad_schedule_start_time) payload.ad_schedule_start_time = updateData.ad_schedule_start_time;
+      if (updateData.ad_schedule_end_time) payload.ad_schedule_end_time = updateData.ad_schedule_end_time;
+
+      console.log('Updating Facebook ad with payload:', payload);
+      
+      const response: AxiosResponse = await axios.post(url, payload);
+      console.log('Facebook ad updated successfully:', response.data);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API updateAd error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to update Facebook ad: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Delete ad
+   */
+  async deleteAd(adId: string): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adId}`;
+      
+      const response: AxiosResponse = await axios.delete(url, {
+        params: {
+          access_token: this.accessToken
+        }
+      });
+      
+      console.log('Facebook ad deleted successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API deleteAd error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to delete Facebook ad: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get ad insights
+   */
+  async getAdInsights(adId: string, dateRange?: { since: string; until: string }): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adId}/insights`;
+      
+      const params: any = {
+        access_token: this.accessToken,
+        fields: 'impressions,clicks,spend,ctr,cpc,conversions,cost_per_conversion,reach,frequency'
+      };
+
+      if (dateRange) {
+        params.time_range = JSON.stringify(dateRange);
+      }
+
+      const response: AxiosResponse = await axios.get(url, { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getAdInsights error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to get Facebook ad insights: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get ad preview
+   */
+  async getAdPreview(adId: string, adFormat: string = 'DESKTOP_FEED_STANDARD'): Promise<any> {
+    try {
+      const url = `${this.baseURL}/${adId}/previews`;
+      
+      const params: any = {
+        access_token: this.accessToken,
+        ad_format: adFormat
+      };
+
+      const response: AxiosResponse = await axios.get(url, { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Facebook API getAdPreview error:', error);
+      if (error.response?.data) {
+        console.error('Facebook API Error Details:', error.response.data);
+      }
+      throw new Error(`Failed to get Facebook ad preview: ${error.response?.data?.error?.message || error.message}`);
+    }
+  }
 }
 
 /**

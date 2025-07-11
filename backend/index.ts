@@ -5,6 +5,7 @@ import authRoutes from './auth-server/routes/auth.routes';
 import campaignRoutes from './ads-server/routes/campaign.routes';
 import adSetRoutes from './ads-server/routes/adsets.routes';
 import creativeRoutes from './ads-server/routes/creative.routes';
+import adRoutes from './ads-server/routes/ad.routes';
 import { AuthService } from './auth-server/services/auth.service';
 import { AuthMiddleware } from './auth-server/middleware/auth.middleware';
 import { DatabaseConnection, config, RedisCacheService } from './common';
@@ -61,6 +62,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', AuthMiddleware.authenticateToken, campaignRoutes);
 app.use('/api/adsets', AuthMiddleware.authenticateToken, adSetRoutes);
 app.use('/api/creatives', AuthMiddleware.authenticateToken, creativeRoutes);
+app.use('/api/ads', AuthMiddleware.authenticateToken, adRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

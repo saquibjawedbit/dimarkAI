@@ -68,6 +68,7 @@ interface AdSetCardProps {
   onDelete: (adSet: AdSet) => void;
   onToggleStatus: (adSet: AdSet) => void;
   onDuplicate: (adSet: AdSet) => void;
+  onViewAds: (adSet: AdSet) => void;
 }
 
 const AdSetCard: React.FC<AdSetCardProps> = ({
@@ -76,6 +77,7 @@ const AdSetCard: React.FC<AdSetCardProps> = ({
   onDelete,
   onToggleStatus,
   onDuplicate,
+  onViewAds,
 }) => {
   const [showActions, setShowActions] = useState(false);
 
@@ -145,6 +147,14 @@ const AdSetCard: React.FC<AdSetCardProps> = ({
             {showActions && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
                 <div className="py-1">
+                  <button
+                    onClick={(e) => handleMenuItemClick(e, () => onViewAds(adSet))}
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    <Target size={16} className="mr-2" />
+                    View Ads
+                  </button>
+                  <hr className="my-1" />
                   <button
                     onClick={(e) => handleMenuItemClick(e, () => onEdit(adSet))}
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
@@ -609,6 +619,10 @@ export const AdSetsManagement: React.FC = () => {
     }
   };
 
+  const handleViewAds = (adSet: AdSet) => {
+    navigate(`/dashboard/campaigns/${campaignId}/adsets/${adSet._id}/ads`);
+  };
+
   const handleDuplicate = async (adSet: AdSet) => {
     if (!campaignId) return;
     
@@ -1046,6 +1060,7 @@ export const AdSetsManagement: React.FC = () => {
                     onDelete={handleDeleteAdSet}
                     onToggleStatus={handleToggleStatus}
                     onDuplicate={handleDuplicate}
+                    onViewAds={handleViewAds}
                   />
                 ))}
               </div>
