@@ -61,8 +61,6 @@ export class AdController {
         return;
       }
 
-      console.log('Creating ad with data:', adData);
-
       if (!/^\d+$/.test(adData.creativeId)) {
         res.status(400).json({ 
           success: false, 
