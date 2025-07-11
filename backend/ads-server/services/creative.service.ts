@@ -35,6 +35,8 @@ export class CreativeService {
 
   /**
    * Create a new creative
+   * Note: Facebook AdCreative objects don't support all fields that other ad objects do.
+   * Specifically, 'updated_time' is not available for AdCreative objects.
    */
   async createCreative(creativeData: CreateCreativeRequest): Promise<CreativeResponse> {
     try {
@@ -54,11 +56,11 @@ export class CreativeService {
       // Create creative on Facebook
       const facebookCreative = await facebookAPI.createCreative(adAccountId, creativeData);
       
-      // Get the full creative data
-      const creativeResponse = await facebookAPI.getCreative(facebookCreative.id);
-      
-      console.log('Creative created successfully:', creativeResponse.id);
-      return creativeResponse;
+      // Return the created creative data directly to avoid potential field issues
+      // Note: We could fetch full data here, but to avoid field compatibility issues,
+      // we'll return the basic creation response
+      console.log('Creative created successfully:', facebookCreative.id);
+      return facebookCreative;
     } catch (error: any) {
       console.error('CreativeService createCreative error:', error);
       throw new Error(`Failed to create creative: ${error.message}`);

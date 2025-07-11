@@ -217,8 +217,7 @@ export interface CreativeResponse {
   title?: string;
   use_page_actor_override?: boolean;
   video_id?: string;
-  created_time: string;
-  updated_time: string;
+  // Note: updated_time is not available for AdCreative objects in Facebook API
 }
 
 export interface CreativePreviewRequest {

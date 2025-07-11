@@ -591,6 +591,8 @@ export class FacebookMarketingAPI {
 
   /**
    * Create a creative on Facebook
+   * Note: AdCreative objects have limited field support compared to other ad objects.
+   * The 'updated_time' field is not available for AdCreative objects.
    */
   async createCreative(adAccountId: string, creativeData: any): Promise<any> {
     try {
@@ -886,8 +888,8 @@ export class FacebookMarketingAPI {
       if (fields && fields.length > 0) {
         params.fields = fields.join(',');
       } else {
-        // Default fields to retrieve
-        params.fields = 'id,name,object_story_id,object_story_spec,asset_feed_spec,template_url,url_tags,degrees_of_freedom_spec,status,adlabels,applink_treatment,authorization_category,auto_update,branded_content_sponsor_page_id,bundle_folder_id,call_to_action_type,categorization_criteria,category_media_source,destination_set_id,dynamic_ad_voice,effective_authorization_category,effective_instagram_media_id,effective_instagram_story_id,enable_direct_install,enable_launch_instant_app,image_crops,image_hash,image_url,instagram_actor_id,instagram_permalink_url,instagram_story_id,instagram_user_id,interactive_components_spec,link_deep_link_url,link_destination_display_url,link_og_id,link_url,messenger_sponsored_message,modal_dialog,place_page_set_id,platform_customizations,playable_asset_id,portrait_customizations,product_set_id,recommender_settings,source_instagram_media_id,thumbnail_url,title,use_page_actor_override,video_id,created_time,updated_time';
+        // Default fields to retrieve - using only core confirmed available fields for AdCreative
+        params.fields = 'id,name,object_story_id,object_story_spec,status';
       }
 
       console.log('Fetching Facebook creative:', creativeId);
@@ -996,8 +998,8 @@ export class FacebookMarketingAPI {
       if (fields && fields.length > 0) {
         params.fields = fields.join(',');
       } else {
-        // Default fields to retrieve
-        params.fields = 'id,name,object_story_id,status,created_time,updated_time';
+        // Default fields to retrieve (removed updated_time as it's not available for AdCreative)
+        params.fields = 'id,name,object_story_id,status';
       }
 
       // Add pagination
