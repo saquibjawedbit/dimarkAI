@@ -61,14 +61,7 @@ export class AdController {
         return;
       }
 
-      // Validate ID formats
-      if (!/^\d+$/.test(adData.adsetId)) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Adset ID must be a valid number' 
-        } as ApiResponse);
-        return;
-      }
+      console.log('Creating ad with data:', adData);
 
       if (!/^\d+$/.test(adData.creativeId)) {
         res.status(400).json({ 
