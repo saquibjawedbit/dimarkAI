@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -54,6 +55,15 @@ function App() {
               <Navbar />
               <main className="flex-grow">
                 <SignupPage />
+              </main>
+              <Footer />
+            </div>
+          } />
+          <Route path="/privacy-policy" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <PrivacyPolicyPage />
               </main>
               <Footer />
             </div>

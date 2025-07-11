@@ -67,9 +67,13 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
       if (response.data) {
         setAvailablePages(response.data);
         setShowPages(true);
+        if (response.data.length === 0) {
+          setError('No Facebook Pages found. This may be due to insufficient permissions or no pages associated with your account.');
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load available pages:', err);
+      setError('Failed to load Facebook Pages. You may need to enter the Page ID manually.');
     } finally {
       setLoadingPages(false);
     }
@@ -546,7 +550,9 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                   3. Scroll down to find "Page ID" or "Facebook Page ID"<br/>
                   4. It should be a long number (e.g., 123456789012345)<br/>
                   <br/>
-                  <strong>Important:</strong> You must have admin access to the page and permission to create ads for it.
+                  <strong>Important:</strong> You must have admin access to the page and permission to create ads for it.<br/>
+                  <br/>
+                  <strong>Note:</strong> If the "Show My Available Pages" button doesn't work, it may be due to Facebook permissions. You can still enter the Page ID manually.
                 </p>
                 <div className="mt-3">
                   <Button

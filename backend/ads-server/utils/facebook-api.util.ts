@@ -614,15 +614,15 @@ export class FacebookMarketingAPI {
           throw new Error('Page ID must be a valid numeric string');
         }
         
-        // Validate page access before proceeding
-        console.log(`Validating page access for Page ID: ${pageId}`);
-        const hasPageAccess = await this.validatePageAccess(pageId);
-        if (!hasPageAccess) {
-          throw new Error('Invalid Facebook Page or insufficient permissions. Please ensure:\n' +
-                          '- The Page ID is correct\n' +
-                          '- You have admin access to the Facebook Page\n' +
-                          '- The Page is published and active\n' +
-                          '- Your access token has the necessary permissions for this Page');
+        // Optional page access validation (skip if permissions are insufficient)
+        console.log(`Attempting to validate page access for Page ID: ${pageId}`);
+        try {
+          const hasPageAccess = await this.validatePageAccess(pageId);
+          if (!hasPageAccess) {
+            console.warn(`Page validation failed for ${pageId}, but proceeding with creative creation`);
+          }
+        } catch (validationError: any) {
+          console.warn(`Page validation error: ${validationError.message}, proceeding with creative creation`);
         }
         
         // Validate that only one data type is present
@@ -841,12 +841,20 @@ export class FacebookMarketingAPI {
                           '- The Page ID is correct and numeric\n' +
                           '- You have admin access to the Facebook Page\n' +
                           '- The Page is published and active\n' +
-                          '- Your access token has the necessary permissions for this Page';
-          } else if (fbError.message.includes('Invalid page')) {
+                          '- Your access token has the necessary permissions for this Page\n' +
+                          '- You are logged in with the correct Facebook account';
+          } else if (fbError.message.includes('Invalid page') || fbError.message.includes('page_id')) {
             errorMessage = 'Invalid Facebook Page ID. Please ensure:\n' +
                           '- The Page ID is correct (numeric only)\n' +
                           '- You have admin access to the Page\n' +
-                          '- The Page exists and is published';
+                          '- The Page exists and is published\n' +
+                          '- You are using the correct Facebook account';
+          } else if (fbError.code === 10 && fbError.message.includes('permission')) {
+            errorMessage = 'Insufficient permissions for this Facebook Page. Please ensure:\n' +
+                          '- You have admin rights on the Facebook Page\n' +
+                          '- Your Facebook app has the necessary permissions\n' +
+                          '- You logged in with the correct Facebook account\n' +
+                          '- The Page allows advertising';
           }
         } else if (fbError.code === 190) {
           errorMessage = `Invalid access token: ${fbError.message}`;
@@ -1152,45 +1160,41 @@ export class FacebookMarketingAPI {
   }
 
   /**
-   * Validate Facebook Page access
+   * Validate Facebook Page access (simplified approach)
    */
   async validatePageAccess(pageId: string): Promise<boolean> {
     try {
+      // Try a simple GET request to the page to check if it exists and is accessible
       const url = `${this.baseURL}/${pageId}`;
       
       const response: AxiosResponse = await axios.get(url, {
         params: {
-          fields: 'id,name,access_token,tasks',
+          fields: 'id,name',
           access_token: this.accessToken,
         },
       });
 
-      // Check if user has necessary permissions
-      const page = response.data;
-      const tasks = page.tasks || [];
-      
-      // Check if user has ADVERTISE or MANAGE tasks
-      const hasAdvertisePermission = tasks.includes('ADVERTISE') || tasks.includes('MANAGE');
-      
-      if (!hasAdvertisePermission) {
-        console.warn(`User does not have advertise permission for page ${pageId}`);
-        return false;
+      if (response.data && response.data.id) {
+        console.log(`Page validation successful for ${pageId}: ${response.data.name || 'Unknown'}`);
+        return true;
       }
-
-      console.log(`Page validation successful for ${pageId}: ${page.name}`);
-      return true;
+      
+      return false;
     } catch (error: any) {
-      console.error(`Page validation failed for ${pageId}:`, error);
-      if (error.response?.data?.error) {
-        const fbError = error.response.data.error;
-        console.error('Facebook Page validation error:', fbError);
+      console.warn(`Page validation failed for ${pageId}:`, error.response?.data?.error?.message || error.message);
+      
+      // If it's a permissions error, we'll let it pass and let the creative creation fail with a better error
+      if (error.response?.data?.error?.code === 10) {
+        console.warn('Skipping page validation due to permissions - will let creative creation handle validation');
+        return true; // Allow to proceed, let creative creation validate
       }
+      
       return false;
     }
   }
 
   /**
-   * Get user's available Facebook Pages
+   * Get user's available Facebook Pages (simplified approach)
    */
   async getUserPages(): Promise<any[]> {
     try {
@@ -1198,7 +1202,7 @@ export class FacebookMarketingAPI {
       
       const response: AxiosResponse = await axios.get(url, {
         params: {
-          fields: 'id,name,access_token,tasks,category,can_post,fan_count',
+          fields: 'id,name,category,can_post',
           access_token: this.accessToken,
         },
       });
@@ -1206,19 +1210,24 @@ export class FacebookMarketingAPI {
       const pages = response.data.data || [];
       console.log(`Found ${pages.length} Facebook Pages for user`);
       
-      // Log pages with advertise permission
-      const advertisablePages = pages.filter((page: any) => 
-        page.tasks && (page.tasks.includes('ADVERTISE') || page.tasks.includes('MANAGE'))
-      );
+      // Filter pages where user can post (indicates some level of access)
+      const accessiblePages = pages.filter((page: any) => page.can_post !== false);
       
-      console.log(`User has advertise permission for ${advertisablePages.length} pages:`, 
-                  advertisablePages.map((p: any) => `${p.name} (${p.id})`));
+      console.log(`User has access to ${accessiblePages.length} pages:`, 
+                  accessiblePages.map((p: any) => `${p.name} (${p.id})`));
       
-      return pages;
+      return accessiblePages;
     } catch (error: any) {
       console.error('Failed to fetch user pages:', error);
       if (error.response?.data?.error) {
-        console.error('Facebook API error:', error.response.data.error);
+        const fbError = error.response.data.error;
+        console.error('Facebook API error:', fbError);
+        
+        // If it's a permissions error, return empty array but don't fail
+        if (fbError.code === 10) {
+          console.warn('Cannot fetch pages due to permissions - returning empty array');
+          return [];
+        }
       }
       return [];
     }

@@ -83,11 +83,12 @@ export const loginWithFacebook = (): Promise<{
       scope: [
         'public_profile',
         'email',
-        'ads_read',
-        'ads_management',
         'pages_show_list',
-        'pages_read_engagement',
+        'pages_read_engagement', 
         'pages_manage_metadata',
+        'pages_manage_ads',
+        'ads_management',
+        'ads_read',
         'business_management',
         'pages_manage_posts'
       ].join(','),

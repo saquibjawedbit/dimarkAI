@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 import { Logo } from './Logo';
 
@@ -87,9 +88,9 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">
+                <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors duration-200">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">
@@ -138,9 +139,9 @@ export const Footer: React.FC = () => {
           <div className="mt-4 md:mt-0">
             <ul className="flex space-x-6">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white text-sm">
+                <Link to="/privacy-policy" className="text-gray-400 hover:text-white text-sm">
                   Privacy
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white text-sm">
