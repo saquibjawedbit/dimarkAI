@@ -596,6 +596,33 @@ export class FacebookMarketingAPI {
     try {
       const url = `${this.baseURL}/act_${adAccountId}/adcreatives`;
       
+      console.log('Received creative data:', JSON.stringify(creativeData, null, 2));
+      
+      // Validate basic structure
+      if (!creativeData.name) {
+        throw new Error('Creative name is required');
+      }
+      
+      if (creativeData.object_story_spec) {
+        if (!creativeData.object_story_spec.page_id) {
+          throw new Error('Page ID is required in object_story_spec');
+        }
+        
+        // Validate that only one data type is present
+        const hasLinkData = creativeData.object_story_spec.link_data && Object.keys(creativeData.object_story_spec.link_data).length > 0;
+        const hasPhotoData = creativeData.object_story_spec.photo_data && Object.keys(creativeData.object_story_spec.photo_data).length > 0;
+        const hasVideoData = creativeData.object_story_spec.video_data && Object.keys(creativeData.object_story_spec.video_data).length > 0;
+        
+        const dataTypes = [hasLinkData, hasPhotoData, hasVideoData].filter(Boolean);
+        if (dataTypes.length > 1) {
+          throw new Error('Only one data type (link_data, photo_data, or video_data) can be specified in object_story_spec');
+        }
+        
+        if (dataTypes.length === 0) {
+          throw new Error('At least one data type (link_data, photo_data, or video_data) must be specified in object_story_spec');
+        }
+      }
+      
       // Prepare creative payload
       const payload: any = {
         name: creativeData.name,
@@ -753,7 +780,7 @@ export class FacebookMarketingAPI {
         payload.video_id = creativeData.video_id;
       }
 
-      console.log('Creating Facebook creative with payload:', payload);
+      console.log('Creating Facebook creative with payload:', JSON.stringify(payload, null, 2));
 
       const response: AxiosResponse = await axios.post(url, payload, {
         headers: {
@@ -765,9 +792,40 @@ export class FacebookMarketingAPI {
       return response.data;
     } catch (error: any) {
       console.error('Facebook API createCreative error:', error);
-      if (error.response?.data?.error) {
-        throw new Error(`Facebook API Error: ${error.response.data.error.message}`);
+      
+      // Log the full error response for debugging
+      if (error.response) {
+        console.error('Facebook API Error Response:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers
+        });
       }
+      
+      if (error.response?.data?.error) {
+        const fbError = error.response.data.error;
+        console.error('Facebook API Error Details:', {
+          message: fbError.message,
+          type: fbError.type,
+          code: fbError.code,
+          error_subcode: fbError.error_subcode,
+          fbtrace_id: fbError.fbtrace_id
+        });
+        
+        // Provide more specific error messages
+        let errorMessage = fbError.message;
+        if (fbError.code === 100) {
+          errorMessage = `Invalid parameter: ${fbError.message}`;
+        } else if (fbError.code === 190) {
+          errorMessage = `Invalid access token: ${fbError.message}`;
+        } else if (fbError.code === 200) {
+          errorMessage = `Permissions error: ${fbError.message}`;
+        }
+        
+        throw new Error(`Facebook API Error (${fbError.code}): ${errorMessage}`);
+      }
+      
       throw new Error(`Failed to create creative: ${error.message}`);
     }
   }

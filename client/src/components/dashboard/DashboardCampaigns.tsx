@@ -450,11 +450,12 @@ export const DashboardCampaigns: React.FC = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
-          <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleCreateCampaign}>
-            Create Campaign
-          </Button>
-          {activeTab === 'creatives' && (
-            <Button variant="secondary" leftIcon={<Plus size={16} />} onClick={handleCreateCreative}>
+          {activeTab === 'campaigns' ? (
+            <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleCreateCampaign}>
+              Create Campaign
+            </Button>
+          ) : (
+            <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleCreateCreative}>
               Create Creative
             </Button>
           )}

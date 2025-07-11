@@ -38,6 +38,19 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
             link: ''
           }
         }
+      },
+      photo_data: {
+        image_hash: '',
+        url: '',
+        message: '',
+        name: '',
+        description: '',
+        call_to_action: {
+          type: 'LEARN_MORE',
+          value: {
+            link: ''
+          }
+        }
       }
     }
   });
@@ -115,6 +128,80 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
     }));
   };
 
+  const handlePhotoDataChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      object_story_spec: {
+        ...prev.object_story_spec,
+        photo_data: {
+          ...prev.object_story_spec?.photo_data,
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handlePhotoCallToActionChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      object_story_spec: {
+        ...prev.object_story_spec,
+        photo_data: {
+          ...prev.object_story_spec?.photo_data,
+          call_to_action: {
+            ...prev.object_story_spec?.photo_data?.call_to_action,
+            [field]: value
+          }
+        }
+      }
+    }));
+  };
+
+  const handlePhotoCallToActionValueChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      object_story_spec: {
+        ...prev.object_story_spec,
+        photo_data: {
+          ...prev.object_story_spec?.photo_data,
+          call_to_action: {
+            ...prev.object_story_spec?.photo_data?.call_to_action,
+            value: {
+              ...prev.object_story_spec?.photo_data?.call_to_action?.value,
+              [field]: value
+            }
+          }
+        }
+      }
+    }));
+  };
+
+  // Helper function to clean up empty values
+  const cleanObject = (obj: any): any => {
+    if (obj === null || obj === undefined) return undefined;
+    if (typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.filter(item => item !== null && item !== undefined);
+    
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== null && value !== undefined && value !== '') {
+        if (typeof value === 'object') {
+          const cleanedValue = cleanObject(value);
+          if (cleanedValue !== undefined && (
+            (typeof cleanedValue === 'object' && !Array.isArray(cleanedValue) && Object.keys(cleanedValue).length > 0) ||
+            (Array.isArray(cleanedValue) && cleanedValue.length > 0) ||
+            (typeof cleanedValue !== 'object')
+          )) {
+            cleaned[key] = cleanedValue;
+          }
+        } else {
+          cleaned[key] = value;
+        }
+      }
+    }
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -130,14 +217,122 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
         if (!formData.object_story_spec?.link_data?.link) {
           throw new Error('Link URL is required for link creatives');
         }
+        
+        // Validate URL format
+        const linkUrl = formData.object_story_spec.link_data.link;
+        try {
+          new URL(linkUrl);
+        } catch (urlError) {
+          throw new Error('Please enter a valid URL (e.g., https://example.com)');
+        }
+        
         if (!formData.object_story_spec?.link_data?.message) {
           throw new Error('Message is required for link creatives');
         }
+        if (!formData.object_story_spec?.page_id) {
+          throw new Error('Facebook Page ID is required for link creatives');
+        }
+        if (!/^\d+$/.test(formData.object_story_spec.page_id)) {
+          throw new Error('Facebook Page ID should be numeric (numbers only)');
+        }
       }
 
-      await creativeService.createCreative(formData);
-      onSuccess();
-      onClose();
+      if (creativeType === 'image') {
+        if (!formData.object_story_spec?.photo_data?.image_hash) {
+          throw new Error('Image hash is required for image creatives');
+        }
+        if (!formData.object_story_spec?.page_id) {
+          throw new Error('Facebook Page ID is required for image creatives');
+        }
+        if (!/^\d+$/.test(formData.object_story_spec.page_id)) {
+          throw new Error('Facebook Page ID should be numeric (numbers only)');
+        }
+      }
+
+      // Prepare creative data based on type
+      let creativeData = {
+        name: formData.name,
+        status: formData.status,
+        object_story_spec: {
+          page_id: formData.object_story_spec?.page_id
+        }
+      } as any;
+
+      if (creativeType === 'link') {
+        // For link creatives, only include link_data
+        const linkData = {
+          link: formData.object_story_spec?.link_data?.link,
+          message: formData.object_story_spec?.link_data?.message,
+          name: formData.object_story_spec?.link_data?.name,
+          description: formData.object_story_spec?.link_data?.description,
+          image_url: formData.object_story_spec?.link_data?.image_url,
+          call_to_action: formData.object_story_spec?.link_data?.call_to_action
+        };
+        // Clean up empty values for link_data
+        creativeData.object_story_spec.link_data = cleanObject(linkData);
+      } else if (creativeType === 'image') {
+        // For image creatives, only include photo_data
+        const photoData = {
+          image_hash: formData.object_story_spec?.photo_data?.image_hash,
+          url: formData.object_story_spec?.photo_data?.url,
+          message: formData.object_story_spec?.photo_data?.message,
+          name: formData.object_story_spec?.photo_data?.name,
+          description: formData.object_story_spec?.photo_data?.description,
+          call_to_action: formData.object_story_spec?.photo_data?.call_to_action
+        };
+        // Clean up empty values for photo_data
+        creativeData.object_story_spec.photo_data = cleanObject(photoData);
+      }
+
+      // Clean up empty values for the entire object
+      creativeData = cleanObject(creativeData);
+
+      console.log('Sending creative data:', JSON.stringify(creativeData, null, 2));
+
+      // Final validation of the payload structure
+      if (!creativeData.object_story_spec?.page_id) {
+        throw new Error('Page ID is required in object_story_spec');
+      }
+
+      if (creativeType === 'link' && !creativeData.object_story_spec?.link_data) {
+        throw new Error('Link data is required for link creatives');
+      }
+
+      if (creativeType === 'image' && !creativeData.object_story_spec?.photo_data) {
+        throw new Error('Photo data is required for image creatives');
+      }
+
+      // Ensure we don't have both link_data and photo_data
+      if (creativeData.object_story_spec?.link_data && creativeData.object_story_spec?.photo_data) {
+        throw new Error('Cannot have both link_data and photo_data in the same creative');
+      }
+
+      try {
+        const response = await creativeService.createCreative(creativeData);
+        console.log('Creative created successfully:', response);
+        onSuccess();
+        onClose();
+      } catch (createError: any) {
+        console.error('Detailed error creating creative:', createError);
+        
+        // Try to extract more specific error information
+        let errorMessage = createError.message || 'Failed to create creative';
+        
+        // Check for common Facebook API errors
+        if (errorMessage.includes('Invalid parameter')) {
+          errorMessage += '\n\nCommon issues:\n- Facebook Page ID might be incorrect (should be numeric only)\n- Image hash might be invalid (for image creatives)\n- Link URL might be invalid (for link creatives)\n- Required fields might be missing\n- Page permissions might be insufficient\n- Creative payload structure might be incorrect';
+        }
+        
+        if (errorMessage.includes('Insufficient permissions')) {
+          errorMessage = 'Insufficient permissions. Please make sure:\n- Your Facebook account has admin access to the page\n- The app has the necessary permissions\n- The access token is valid';
+        }
+        
+        if (errorMessage.includes('Invalid Page ID')) {
+          errorMessage = 'Invalid Facebook Page ID. Please check:\n- The Page ID is correct (numeric only)\n- You have admin access to the page\n- The page is active and published';
+        }
+        
+        throw new Error(errorMessage);
+      }
       
       // Reset form
       setFormData({
@@ -151,6 +346,19 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
             name: '',
             description: '',
             image_url: '',
+            call_to_action: {
+              type: 'LEARN_MORE',
+              value: {
+                link: ''
+              }
+            }
+          },
+          photo_data: {
+            image_hash: '',
+            url: '',
+            message: '',
+            name: '',
+            description: '',
             call_to_action: {
               type: 'LEARN_MORE',
               value: {
@@ -192,7 +400,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <p className="text-red-800 text-sm">{error}</p>
+              <div className="text-red-800 text-sm whitespace-pre-line">{error}</div>
             </div>
           )}
 
@@ -290,7 +498,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
 
             <div>
               <label htmlFor="pageId" className="block text-sm font-medium text-gray-700 mb-1">
-                Facebook Page ID
+                Facebook Page ID <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -305,7 +513,20 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                 }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter Facebook Page ID"
+                required
               />
+              <p className="mt-1 text-sm text-gray-500">
+                The Facebook Page ID where the creative will be posted. You can find this in your Facebook Page settings.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2">
+                <p className="text-blue-800 text-sm">
+                  <strong>Tips for finding your Facebook Page ID:</strong><br/>
+                  1. Go to your Facebook Page<br/>
+                  2. Click "About" in the left sidebar<br/>
+                  3. Scroll down to find "Page ID" or "Facebook Page ID"<br/>
+                  4. It should be a long number (e.g., 123456789012345)
+                </p>
+              </div>
             </div>
           </div>
 
@@ -420,8 +641,121 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
             </div>
           )}
 
+          {/* Image Creative Fields */}
+          {creativeType === 'image' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Image Creative Details</h3>
+              
+              <div>
+                <label htmlFor="imageHash" className="block text-sm font-medium text-gray-700 mb-1">
+                  Image Hash <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="imageHash"
+                  value={formData.object_story_spec?.photo_data?.image_hash || ''}
+                  onChange={(e) => handlePhotoDataChange('image_hash', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter image hash from Facebook"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Upload your image to Facebook first and use the returned hash
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="photoUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                  Photo URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  id="photoUrl"
+                  value={formData.object_story_spec?.photo_data?.url || ''}
+                  onChange={(e) => handlePhotoDataChange('url', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="https://example.com/photo.jpg"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="photoMessage" className="block text-sm font-medium text-gray-700 mb-1">
+                  Message
+                </label>
+                <textarea
+                  id="photoMessage"
+                  value={formData.object_story_spec?.photo_data?.message || ''}
+                  onChange={(e) => handlePhotoDataChange('message', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter your photo caption/message"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="photoName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Photo Name
+                </label>
+                <input
+                  type="text"
+                  id="photoName"
+                  value={formData.object_story_spec?.photo_data?.name || ''}
+                  onChange={(e) => handlePhotoDataChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter photo name"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="photoDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  Photo Description
+                </label>
+                <textarea
+                  id="photoDescription"
+                  value={formData.object_story_spec?.photo_data?.description || ''}
+                  onChange={(e) => handlePhotoDataChange('description', e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter photo description"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="photoCtaType" className="block text-sm font-medium text-gray-700 mb-1">
+                  Call to Action Type
+                </label>
+                <select
+                  id="photoCtaType"
+                  value={formData.object_story_spec?.photo_data?.call_to_action?.type || 'LEARN_MORE'}
+                  onChange={(e) => handlePhotoCallToActionChange('type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {constants?.callToActionTypes.slice(0, 20).map(cta => (
+                    <option key={cta} value={cta}>
+                      {cta.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="photoCtaLink" className="block text-sm font-medium text-gray-700 mb-1">
+                  Call to Action Link
+                </label>
+                <input
+                  type="url"
+                  id="photoCtaLink"
+                  value={formData.object_story_spec?.photo_data?.call_to_action?.value?.link || ''}
+                  onChange={(e) => handlePhotoCallToActionValueChange('link', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Other creative types can be added here */}
-          {creativeType !== 'link' && (
+          {creativeType !== 'link' && creativeType !== 'image' && (
             <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
               <p className="text-gray-600 text-center">
                 {creativeType.charAt(0).toUpperCase() + creativeType.slice(1)} creative type is coming soon!
