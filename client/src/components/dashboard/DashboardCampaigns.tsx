@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, Play, Pause, Edit, Trash2, Copy, MoreVertical, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -7,7 +8,6 @@ import { CreateCampaignModal } from '../ui/CreateCampaignModal';
 import { EditCampaignModal } from '../ui/EditCampaignModal';
 import { AdCreative } from '../../types';
 import { campaignService, Campaign as BackendCampaign } from '../../services/campaign';
-import { AdSetsPanel } from './AdSetsPanel';
 
 // Mock campaign data
 const mockCampaigns = [
@@ -228,6 +228,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
 
 
 export const DashboardCampaigns: React.FC = () => {
+  const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [ads] = useState<AdCreative[]>(mockAds);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'ads'>('campaigns');
@@ -238,10 +239,6 @@ export const DashboardCampaigns: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<BackendCampaign | null>(null);
-  // AdSets UI state
-  const [showAdSetsPanel, setShowAdSetsPanel] = useState(false);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
-  const [selectedCampaignName, setSelectedCampaignName] = useState<string>('');
 
   // Convert backend campaign to component campaign format
   const mapBackendCampaign = (backendCampaign: BackendCampaign): Campaign => ({
@@ -302,9 +299,7 @@ export const DashboardCampaigns: React.FC = () => {
 
   // Handle campaign card click to show AdSets
   const handleViewAdSets = (campaign: Campaign) => {
-    setSelectedCampaignId(campaign.id);
-    setSelectedCampaignName(campaign.name);
-    setShowAdSetsPanel(true);
+    navigate(`/dashboard/campaigns/${campaign.id}/adsets`);
   };
 
   const handleEditCampaign = async (campaign: Campaign) => {
@@ -533,15 +528,6 @@ export const DashboardCampaigns: React.FC = () => {
         onSuccess={loadCampaigns}
         campaign={editingCampaign}
       />
-
-      {/* AdSets Panel */}
-      {showAdSetsPanel && selectedCampaignId && (
-        <AdSetsPanel
-          campaignId={selectedCampaignId}
-          campaignName={selectedCampaignName}
-          onClose={() => setShowAdSetsPanel(false)}
-        />
-      )}
     </div>
   );
 };

@@ -5,3 +5,4 @@ export { DashboardHome } from './DashboardHome';
 export { DashboardCampaigns } from './DashboardCampaigns';
 
 export { AdSetsPanel } from './AdSetsPanel';
+export { AdSetsManagement } from './AdSetsManagement';
