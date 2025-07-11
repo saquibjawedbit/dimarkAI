@@ -113,11 +113,6 @@ export class CreativeController {
   getCreative = async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user?.userId;
-      if (!userId) {
-        res.status(401).json({ success: false, message: 'User not authenticated' } as ApiResponse);
-        return;
-      }
-
       const { creativeId } = req.params;
       const { fields } = req.query;
 

@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, Play, Pause, Edit, Trash2, Copy, MoreVertical, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { AdCard } from '../ui/AdCard';
+import { CreativeCard } from '../ui/CreativeCard';
 import { CreateCampaignModal } from '../ui/CreateCampaignModal';
+import { CreateCreativeModal } from '../ui/CreateCreativeModal';
 import { EditCampaignModal } from '../ui/EditCampaignModal';
-import { AdCreative } from '../../types';
 import { campaignService, Campaign as BackendCampaign } from '../../services/campaign';
+import { creativeService, Creative } from '../../services/creative';
 
 // Mock campaign data
 const mockCampaigns = [
@@ -26,31 +27,6 @@ const mockCampaigns = [
     startDate: '2024-06-01',
     endDate: '2024-08-31',
     adsCount: 5,
-  },
-];
-
-const mockAds: AdCreative[] = [
-  {
-    id: '1',
-    userId: '1',
-    headline: 'Summer Collection Sale',
-    description: 'Get 25% off our latest summer styles. Limited time offer!',
-    imageUrl: 'https://images.pexels.com/photos/5325588/pexels-photo-5325588.jpeg',
-    callToAction: 'Shop Now',
-    status: 'published',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    userId: '1',
-    headline: 'New Product Launch',
-    description: 'Introducing our revolutionary product. Be the first to try it!',
-    imageUrl: 'https://images.pexels.com/photos/5325600/pexels-photo-5325600.jpeg',
-    callToAction: 'Learn More',
-    status: 'draft',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
@@ -230,13 +206,16 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
 export const DashboardCampaigns: React.FC = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [ads] = useState<AdCreative[]>(mockAds);
-  const [activeTab, setActiveTab] = useState<'campaigns' | 'ads'>('campaigns');
+  const [creatives, setCreatives] = useState<Creative[]>([]);
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'creatives'>('campaigns');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [loading, setLoading] = useState(false);
+  const [creativesLoading, setCreativesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [creativesError, setCreativesError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateCreativeModal, setShowCreateCreativeModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<BackendCampaign | null>(null);
 
@@ -285,15 +264,44 @@ export const DashboardCampaigns: React.FC = () => {
     }
   };
 
-  // Load campaigns on component mount
+  // Load creatives from backend
+  const loadCreatives = async () => {
+    setCreativesLoading(true);
+    setCreativesError(null);
+
+    try {
+      const response = await creativeService.getCreatives({
+        limit: 50,
+        fields: ['id', 'name', 'status', 'object_story_spec', 'asset_feed_spec', 'image_url', 'url_tags']
+      });
+
+      if (response?.data?.data) {
+        setCreatives(response.data.data);
+      }
+    } catch (err: any) {
+      setCreativesError(err?.message || 'Failed to load creatives');
+      console.error('Error loading creatives:', err);
+    } finally {
+      setCreativesLoading(false);
+    }
+  };
+
+  // Load campaigns and creatives on component mount
   useEffect(() => {
     loadCampaigns();
+    loadCreatives();
   }, []);
-
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Filter creatives based on search and status
+  const filteredCreatives = creatives.filter(creative => {
+    const matchesSearch = creative.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || creative.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -361,16 +369,74 @@ export const DashboardCampaigns: React.FC = () => {
     loadCampaigns();
   };
 
-  const handlePublishAd = (ad: AdCreative) => {
-    console.log('Publishing ad:', ad);
+  const handleCreateCreative = () => {
+    setShowCreateCreativeModal(true);
   };
 
-  const handleEditAd = (ad: AdCreative) => {
-    console.log('Editing ad:', ad);
+  const handleCreateCreativeSuccess = () => {
+    // Reload creatives after creation
+    loadCreatives();
   };
 
-  const handleDeleteAd = (ad: AdCreative) => {
-    console.log('Deleting ad:', ad);
+  const handleEditCreative = (creative: Creative) => {
+    console.log('Editing creative:', creative);
+    // TODO: Implement edit creative functionality
+  };
+
+  const handleDeleteCreative = async (creative: Creative) => {
+    if (!window.confirm(`Are you sure you want to delete creative "${creative.name}"?`)) {
+      return;
+    }
+
+    try {
+      await creativeService.deleteCreative(creative.id);
+      // Reload creatives after deletion
+      await loadCreatives();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete creative');
+    }
+  };
+
+  const handleDuplicateCreative = async (creative: Creative) => {
+    try {
+      // Create a copy of the creative with a new name
+      const duplicatedCreative = {
+        name: `${creative.name} (Copy)`,
+        object_story_spec: creative.object_story_spec,
+        asset_feed_spec: creative.asset_feed_spec,
+        template_url: creative.template_url,
+        url_tags: creative.url_tags,
+        degrees_of_freedom_spec: creative.degrees_of_freedom_spec,
+        status: 'PAUSED' as const, // Start as paused
+        // Copy only the relevant fields for creation
+      };
+      await creativeService.createCreative(duplicatedCreative);
+      // Reload creatives after duplication
+      await loadCreatives();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to duplicate creative');
+    }
+  };
+
+  const handleToggleCreativeStatus = async (creative: Creative) => {
+    try {
+      const newStatus = creative.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+      await creativeService.updateCreative(creative.id, { status: newStatus });
+      // Reload creatives after status change
+      await loadCreatives();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to update creative status');
+    }
+  };
+
+  const handleViewCreativeInsights = (creative: Creative) => {
+    console.log('Viewing insights for creative:', creative);
+    // TODO: Implement creative insights functionality
+  };
+
+  const handlePreviewCreative = (creative: Creative) => {
+    console.log('Previewing creative:', creative);
+    // TODO: Implement creative preview functionality
   };
 
   return (
@@ -383,10 +449,15 @@ export const DashboardCampaigns: React.FC = () => {
             Manage your advertising campaigns and ad creatives
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex space-x-3">
           <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleCreateCampaign}>
             Create Campaign
           </Button>
+          {activeTab === 'creatives' && (
+            <Button variant="secondary" leftIcon={<Plus size={16} />} onClick={handleCreateCreative}>
+              Create Creative
+            </Button>
+          )}
         </div>
       </div>
 
@@ -403,13 +474,13 @@ export const DashboardCampaigns: React.FC = () => {
             Campaigns ({campaigns.length})
           </button>
           <button
-            onClick={() => setActiveTab('ads')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'ads'
+            onClick={() => setActiveTab('creatives')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'creatives'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
           >
-            Ad Creatives ({ads.length})
+            Ad Creatives ({creatives.length})
           </button>
         </nav>
       </div>
@@ -428,21 +499,31 @@ export const DashboardCampaigns: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {activeTab === 'campaigns' && (
-          <div className="flex items-center space-x-2">
-            <Filter size={16} className="text-gray-400" />
-            <select
-              className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-              <option value="draft">Draft</option>
-            </select>
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          <Filter size={16} className="text-gray-400" />
+          <select
+            className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            {activeTab === 'campaigns' ? (
+              <>
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="draft">Draft</option>
+              </>
+            ) : (
+              <>
+                <option value="ACTIVE">Active</option>
+                <option value="PAUSED">Paused</option>
+                <option value="PENDING_REVIEW">Pending Review</option>
+                <option value="DISAPPROVED">Disapproved</option>
+                <option value="PREAPPROVED">Pre-approved</option>
+              </>
+            )}
+          </select>
+        </div>
       </div>
 
       {/* Content */}
@@ -462,13 +543,16 @@ export const DashboardCampaigns: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {ads.map((ad) => (
-            <AdCard
-              key={ad.id}
-              ad={ad}
-              onPublish={handlePublishAd}
-              onEdit={handleEditAd}
-              onDelete={handleDeleteAd}
+          {filteredCreatives.map((creative) => (
+            <CreativeCard
+              key={creative.id}
+              creative={creative}
+              onEdit={handleEditCreative}
+              onDelete={handleDeleteCreative}
+              onDuplicate={handleDuplicateCreative}
+              onToggleStatus={handleToggleCreativeStatus}
+              onViewInsights={handleViewCreativeInsights}
+              onPreview={handlePreviewCreative}
             />
           ))}
         </div>
@@ -476,7 +560,7 @@ export const DashboardCampaigns: React.FC = () => {
 
       {/* Empty State */}
       {((activeTab === 'campaigns' && filteredCampaigns.length === 0) ||
-        (activeTab === 'ads' && ads.length === 0)) && (
+        (activeTab === 'creatives' && filteredCreatives.length === 0)) && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
               {activeTab === 'campaigns' ? <Target size={24} className="text-gray-400" /> : <Plus size={24} className="text-gray-400" />}
@@ -487,28 +571,51 @@ export const DashboardCampaigns: React.FC = () => {
             <p className="text-gray-500 mb-6">
               {searchTerm
                 ? `No ${activeTab} match your search criteria.`
-                : `Get started by creating your first ${activeTab.slice(0, -1)}.`}
+                : `Get started by creating your first ${activeTab === 'campaigns' ? 'campaign' : 'creative'}.`}
             </p>
-            <Button variant="primary" leftIcon={<Plus size={16} />}>
-              Create {activeTab === 'campaigns' ? 'Campaign' : 'Ad Creative'}
+            <Button 
+              variant="primary" 
+              leftIcon={<Plus size={16} />}
+              onClick={activeTab === 'campaigns' ? handleCreateCampaign : handleCreateCreative}
+            >
+              Create {activeTab === 'campaigns' ? 'Campaign' : 'Creative'}
             </Button>
           </div>
         )}
 
       {/* Loading State */}
-      {loading && (
+      {(loading && activeTab === 'campaigns') && (
         <div className="text-center py-12">
           <div className="w-8 h-8 mx-auto border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600">Loading campaigns...</p>
         </div>
       )}
 
+      {(creativesLoading && activeTab === 'creatives') && (
+        <div className="text-center py-12">
+          <div className="w-8 h-8 mx-auto border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600">Loading creatives...</p>
+        </div>
+      )}
+
       {/* Error State */}
-      {error && (
+      {error && activeTab === 'campaigns' && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
           <p className="text-red-800">{error}</p>
           <button
             onClick={loadCampaigns}
+            className="mt-2 text-red-600 hover:text-red-800 underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {creativesError && activeTab === 'creatives' && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <p className="text-red-800">{creativesError}</p>
+          <button
+            onClick={loadCreatives}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
             Try again
@@ -522,6 +629,15 @@ export const DashboardCampaigns: React.FC = () => {
         onClose={() => setShowCreateModal(false)}
         onSuccess={handleCreateSuccess}
       />
+
+      {/* Create Creative Modal */}
+      <CreateCreativeModal
+        isOpen={showCreateCreativeModal}
+        onClose={() => setShowCreateCreativeModal(false)}
+        onSuccess={handleCreateCreativeSuccess}
+      />
+
+      {/* Edit Campaign Modal */}
       <EditCampaignModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
