@@ -65,22 +65,38 @@ export class AdService {
         throw new Error('Name, adset ID, and creative ID are required');
       }
 
-      // Validate that adsetId and creativeId are valid numbers
-      const adsetIdNum = parseInt(adData.adsetId, 10);
-      const creativeIdNum = parseInt(adData.creativeId, 10);
-      
-      if (isNaN(adsetIdNum) || adsetIdNum <= 0) {
-        throw new Error('Invalid adset ID - must be a positive number');
+      // Look up the adset to get the Facebook adset ID
+      const adSet = await AdSet.findOne({
+        _id: adData.adsetId,
+        userId: this.userId
+      });
+
+      if (!adSet) {
+        throw new Error('Ad set not found');
       }
+
+      if (!adSet.facebookAdSetId) {
+        throw new Error('Ad set is not synced with Facebook - missing Facebook adset ID');
+      }
+
+      // Validate that creativeId is a valid number
+      const creativeIdNum = parseInt(adData.creativeId, 10);
       
       if (isNaN(creativeIdNum) || creativeIdNum <= 0) {
         throw new Error('Invalid creative ID - must be a positive number');
       }
 
+      // Use Facebook adset ID (already a number from Facebook)
+      const facebookAdsetId = parseInt(adSet.facebookAdSetId, 10);
+      
+      if (isNaN(facebookAdsetId) || facebookAdsetId <= 0) {
+        throw new Error('Invalid Facebook adset ID - adset may not be properly synced');
+      }
+
       // Prepare Facebook API request
       const facebookAdData = {
         name: adData.name,
-        adset_id: adsetIdNum, // Use validated number
+        adset_id: facebookAdsetId, // Use Facebook adset ID
         creative: {
           creative_id: creativeIdNum // Use validated number
         },

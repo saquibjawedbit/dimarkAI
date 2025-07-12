@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Target, BarChart3, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Home, Target, BarChart3, Settings, HelpCircle, LogOut, Sparkles } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarItem {
@@ -24,6 +24,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <Target size={20} />,
     path: '/dashboard/campaigns',
     count: 12,
+  },
+  {
+    id: 'ai-text-generator',
+    label: 'AI Text Generator',
+    icon: <Sparkles size={20} />,
+    path: '/dashboard/ai-text-generator',
   },
   {
     id: 'analytics',

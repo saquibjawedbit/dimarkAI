@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Play, Pause, Edit, Trash2, Copy, MoreVertical, Target } from 'lucide-react';
+import { Plus, Search, Filter, Play, Pause, Edit, Trash2, Copy, MoreVertical, Target, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { CreativeCard } from '../ui/CreativeCard';
@@ -465,6 +465,13 @@ export const DashboardCampaigns: React.FC = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
+          <Button 
+            variant="secondary" 
+            leftIcon={<Sparkles size={16} />}
+            onClick={() => navigate('/dashboard/ai-text-generator')}
+          >
+            AI Text Generator
+          </Button>
           {activeTab === 'campaigns' ? (
             <Button variant="primary" leftIcon={<Plus size={16} />} onClick={handleCreateCampaign}>
               Create Campaign

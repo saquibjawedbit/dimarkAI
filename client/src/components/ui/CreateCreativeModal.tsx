@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Image, Video, Link as LinkIcon, Palette } from 'lucide-react';
+import { X, Image, Video, Link as LinkIcon, Palette, Sparkles, Wand2, RefreshCw } from 'lucide-react';
 import { Button } from './Button';
 import { creativeService, CreateCreativeRequest, CreativeConstants } from '../../services/creative';
+import { geminiService, GenerateTextRequest, RephraseTextRequest } from '../../services/gemini';
 
 interface CreateCreativeModalProps {
   isOpen: boolean;
@@ -20,6 +21,17 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [constants, setConstants] = useState<CreativeConstants | null>(null);
   const [creativeType, setCreativeType] = useState<CreativeType>('link');
+  
+  // AI generation states
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSuccess, setAiSuccess] = useState<string | null>(null);
+  const [showAiHelper, setShowAiHelper] = useState(false);
+  const [aiProductName, setAiProductName] = useState('');
+  const [aiDescription, setAiDescription] = useState('');
+  const [aiTargetAudience, setAiTargetAudience] = useState('');
+  const [aiTone, setAiTone] = useState<'professional' | 'casual' | 'friendly' | 'urgent' | 'persuasive'>('persuasive');
+  const [aiObjective, setAiObjective] = useState<'brand_awareness' | 'reach' | 'traffic' | 'engagement' | 'app_installs' | 'video_views' | 'lead_generation' | 'conversions'>('conversions');
   
   const [formData, setFormData] = useState<CreateCreativeRequest>({
     name: '',
@@ -150,6 +162,112 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
         }
       }
     }));
+  };
+
+  // AI Generation Functions
+  const generateAiText = async () => {
+    if (!aiProductName.trim()) {
+      setAiError('Please enter a product name to generate text');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+    setAiSuccess(null);
+
+    try {
+      const request: GenerateTextRequest = {
+        productName: aiProductName,
+        description: aiDescription || undefined,
+        targetAudience: aiTargetAudience || undefined,
+        campaignObjective: aiObjective,
+        tone: aiTone,
+        platform: 'facebook',
+        adFormat: 'single_image',
+        callToAction: formData.object_story_spec?.link_data?.call_to_action?.type || 'LEARN_MORE',
+        additionalContext: 'This is for a Facebook ad creative'
+      };
+
+      const response = await geminiService.generateAdText(request);
+
+      if (response.success && response.data) {
+        // Parse the generated text and populate the form
+        const generatedText = response.data.generatedText;
+        
+        // Try to extract headline, message, and description from the generated text
+        const lines = generatedText.split('\n').filter(line => line.trim());
+        
+        if (lines.length >= 3) {
+          // First line as headline, second as message, third as description
+          handleLinkDataChange('name', lines[0]);
+          handleLinkDataChange('message', lines[1]);
+          handleLinkDataChange('description', lines[2]);
+        } else if (lines.length === 2) {
+          // First line as headline, second as message
+          handleLinkDataChange('name', lines[0]);
+          handleLinkDataChange('message', lines[1]);
+        } else if (lines.length === 1) {
+          // Use as message
+          handleLinkDataChange('message', lines[0]);
+        }
+        
+        setAiSuccess('AI text generated successfully! Check the form fields below.');
+        setShowAiHelper(false);
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => setAiSuccess(null), 5000);
+      } else {
+        setAiError(response.error || 'Failed to generate text');
+      }
+    } catch (error) {
+      console.error('AI generation error:', error);
+      setAiError('An error occurred while generating text');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const rephraseText = async (field: 'message' | 'name' | 'description') => {
+    const currentText = field === 'message' 
+      ? formData.object_story_spec?.link_data?.message
+      : field === 'name'
+      ? formData.object_story_spec?.link_data?.name
+      : formData.object_story_spec?.link_data?.description;
+
+    if (!currentText?.trim()) {
+      setAiError(`Please enter ${field} text to rephrase`);
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+    setAiSuccess(null);
+
+    try {
+      const request: RephraseTextRequest = {
+        text: currentText,
+        targetAudience: aiTargetAudience || 'general consumers',
+        tone: aiTone,
+        platform: 'facebook'
+      };
+
+      const response = await geminiService.rephraseText(request);
+
+      if (response.success && response.data) {
+        handleLinkDataChange(field, response.data.generatedText);
+        setAiSuccess(`${field.charAt(0).toUpperCase() + field.slice(1)} rephrased successfully!`);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setAiSuccess(null), 3000);
+      } else {
+        setAiError(response.error || 'Failed to rephrase text');
+      }
+    } catch (error) {
+      console.error('AI rephrase error:', error);
+      setAiError('An error occurred while rephrasing text');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handlePhotoDataChange = (field: string, value: any) => {
@@ -401,6 +519,17 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
 
   const handleClose = () => {
     if (!loading) {
+      // Reset AI form
+      setShowAiHelper(false);
+      setAiError(null);
+      setAiSuccess(null);
+      setAiLoading(false);
+      setAiProductName('');
+      setAiDescription('');
+      setAiTargetAudience('');
+      setAiTone('persuasive');
+      setAiObjective('conversions');
+      
       onClose();
     }
   };
@@ -425,6 +554,15 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <div className="text-red-800 text-sm whitespace-pre-line">{error}</div>
+            </div>
+          )}
+
+          {aiSuccess && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="text-green-800 text-sm flex items-center">
+                <Sparkles className="mr-2 text-green-600" size={16} />
+                {aiSuccess}
+              </div>
             </div>
           )}
 
@@ -611,6 +749,128 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Link Creative Details</h3>
               
+              {/* AI Helper Section */}
+              <div className="border-t border-b py-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-md font-semibold text-gray-900 flex items-center">
+                    <Sparkles className="mr-2 text-blue-500" size={18} />
+                    AI Text Generator
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAiHelper(!showAiHelper)}
+                  >
+                    {showAiHelper ? 'Hide' : 'Show'} AI Helper
+                  </Button>
+                </div>
+                
+                {showAiHelper && (
+                  <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Product Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={aiProductName}
+                          onChange={(e) => setAiProductName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Enter product name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Target Audience
+                        </label>
+                        <input
+                          type="text"
+                          value={aiTargetAudience}
+                          onChange={(e) => setAiTargetAudience(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="e.g., young professionals"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Product Description
+                      </label>
+                      <textarea
+                        value={aiDescription}
+                        onChange={(e) => setAiDescription(e.target.value)}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Describe your product or service"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Tone
+                        </label>
+                        <select
+                          value={aiTone}
+                          onChange={(e) => setAiTone(e.target.value as any)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        >
+                          <option value="professional">Professional</option>
+                          <option value="casual">Casual</option>
+                          <option value="friendly">Friendly</option>
+                          <option value="urgent">Urgent</option>
+                          <option value="persuasive">Persuasive</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Campaign Objective
+                        </label>
+                        <select
+                          value={aiObjective}
+                          onChange={(e) => setAiObjective(e.target.value as any)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        >
+                          <option value="brand_awareness">Brand Awareness</option>
+                          <option value="reach">Reach</option>
+                          <option value="traffic">Traffic</option>
+                          <option value="engagement">Engagement</option>
+                          <option value="conversions">Conversions</option>
+                          <option value="lead_generation">Lead Generation</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <Button
+                        type="button"
+                        variant="primary"
+                        onClick={generateAiText}
+                        disabled={aiLoading || !aiProductName.trim()}
+                        leftIcon={aiLoading ? <RefreshCw className="animate-spin" size={16} /> : <Wand2 size={16} />}
+                      >
+                        {aiLoading ? 'Generating...' : 'Generate AI Text'}
+                      </Button>
+                    </div>
+
+                    {aiError && (
+                      <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                        <p className="text-red-800 text-sm">{aiError}</p>
+                      </div>
+                    )}
+                    
+                    {aiSuccess && (
+                      <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                        <p className="text-green-800 text-sm">{aiSuccess}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
               <div>
                 <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-1">
                   Link URL <span className="text-red-500">*</span>
@@ -627,9 +887,22 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                  Message <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                    Message <span className="text-red-500">*</span>
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => rephraseText('message')}
+                    disabled={aiLoading || !formData.object_story_spec?.link_data?.message}
+                    leftIcon={aiLoading ? <RefreshCw className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+                    className="text-xs"
+                  >
+                    AI Rephrase
+                  </Button>
+                </div>
                 <textarea
                   id="message"
                   value={formData.object_story_spec?.link_data?.message || ''}
@@ -642,9 +915,22 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               </div>
 
               <div>
-                <label htmlFor="headline" className="block text-sm font-medium text-gray-700 mb-1">
-                  Headline
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="headline" className="block text-sm font-medium text-gray-700">
+                    Headline
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => rephraseText('name')}
+                    disabled={aiLoading || !formData.object_story_spec?.link_data?.name}
+                    leftIcon={aiLoading ? <RefreshCw className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+                    className="text-xs"
+                  >
+                    AI Rephrase
+                  </Button>
+                </div>
                 <input
                   type="text"
                   id="headline"
@@ -656,9 +942,22 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => rephraseText('description')}
+                    disabled={aiLoading || !formData.object_story_spec?.link_data?.description}
+                    leftIcon={aiLoading ? <RefreshCw className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+                    className="text-xs"
+                  >
+                    AI Rephrase
+                  </Button>
+                </div>
                 <textarea
                   id="description"
                   value={formData.object_story_spec?.link_data?.description || ''}
@@ -838,6 +1137,22 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               </p>
             </div>
           )}
+
+          {/* AI Features Info */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mt-6">
+            <div className="flex items-start">
+              <Sparkles className="mr-3 text-blue-500 mt-1" size={20} />
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">AI-Powered Text Generation</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• <strong>Generate All Text:</strong> Use the AI Helper to create headline, message, and description at once</li>
+                  <li>• <strong>Rephrase Individual Fields:</strong> Click "AI Rephrase" buttons to improve specific text fields</li>
+                  <li>• <strong>Smart Optimization:</strong> AI considers Facebook's best practices for better ad performance</li>
+                  <li>• <strong>Multiple Variations:</strong> Try different tones and objectives to find what works best</li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">

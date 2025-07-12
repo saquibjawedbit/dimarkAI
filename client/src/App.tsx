@@ -21,8 +21,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
-  console.log('ProtectedRoute: isAuthenticated:', isAuthenticated);
-
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 

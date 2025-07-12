@@ -3,6 +3,7 @@ export { DashboardHeader } from './DashboardHeader';
 export { Sidebar } from './Sidebar';
 export { DashboardHome } from './DashboardHome';
 export { DashboardCampaigns } from './DashboardCampaigns';
+export { GeminiTextGenerator } from './GeminiTextGenerator';
 
 export { AdSetsPanel } from './AdSetsPanel';
 export { AdSetsManagement } from './AdSetsManagement';

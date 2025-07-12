@@ -27,11 +27,16 @@ interface RedisConfig {
   db?: number;
 }
 
+interface GeminiConfig {
+  apiKey: string;
+}
+
 interface Config {
   server: ServerConfig;
   database: DatabaseConfig;
   jwt: JWTConfig;
   redis: RedisConfig;
+  gemini: GeminiConfig;
 }
 
 export const config: Config = {
@@ -54,6 +59,9 @@ export const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB || '0', 10),
+  },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || '',
   },
 };
 
