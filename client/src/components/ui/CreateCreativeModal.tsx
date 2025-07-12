@@ -21,7 +21,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [constants, setConstants] = useState<CreativeConstants | null>(null);
   const [creativeType, setCreativeType] = useState<CreativeType>('link');
-  
+
   // AI generation states
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
   const [aiTargetAudience, setAiTargetAudience] = useState('');
   const [aiTone, setAiTone] = useState<'professional' | 'casual' | 'friendly' | 'urgent' | 'persuasive'>('persuasive');
   const [aiObjective, setAiObjective] = useState<'brand_awareness' | 'reach' | 'traffic' | 'engagement' | 'app_installs' | 'video_views' | 'lead_generation' | 'conversions'>('conversions');
-  
+
   const [formData, setFormData] = useState<CreateCreativeRequest>({
     name: '',
     status: 'PAUSED',
@@ -192,28 +192,33 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
 
       if (response.success && response.data) {
         // Parse the generated text and populate the form
-        const generatedText = response.data.generatedText;
-        
-        // Try to extract headline, message, and description from the generated text
-        const lines = generatedText.split('\n').filter(line => line.trim());
-        
-        if (lines.length >= 3) {
-          // First line as headline, second as message, third as description
-          handleLinkDataChange('name', lines[0]);
-          handleLinkDataChange('message', lines[1]);
-          handleLinkDataChange('description', lines[2]);
-        } else if (lines.length === 2) {
-          // First line as headline, second as message
-          handleLinkDataChange('name', lines[0]);
-          handleLinkDataChange('message', lines[1]);
-        } else if (lines.length === 1) {
-          // Use as message
-          handleLinkDataChange('message', lines[0]);
+        let generatedText: string | Record<string, any> = response.data.generatedText;
+
+        if (typeof generatedText === 'string') {
+          const jsonMatch = generatedText.match(/```json\s*([\s\S]*?)\s*```/i);
+          if (jsonMatch && jsonMatch[1]) {
+            try {
+              generatedText = JSON.parse(jsonMatch[1]);
+            } catch (e) {
+              console.error("Failed to parse JSON:", e);
+              generatedText = {}; // fallback to empty object
+            }
+          }
         }
-        
+
+        // First line as headline, second as message, third as description
+        if (typeof generatedText === 'object' && generatedText !== null) {
+          handleLinkDataChange('name', generatedText.headline || '');
+          handleLinkDataChange('message', generatedText.primary_text || '');
+          handleLinkDataChange('description', generatedText.description || '');
+        } else if (typeof generatedText === 'string') {
+          // fallback: set message field with the string
+          handleLinkDataChange('message', generatedText);
+        }
+
         setAiSuccess('AI text generated successfully! Check the form fields below.');
         setShowAiHelper(false);
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setAiSuccess(null), 5000);
       } else {
@@ -228,11 +233,11 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
   };
 
   const rephraseText = async (field: 'message' | 'name' | 'description') => {
-    const currentText = field === 'message' 
+    const currentText = field === 'message'
       ? formData.object_story_spec?.link_data?.message
       : field === 'name'
-      ? formData.object_story_spec?.link_data?.name
-      : formData.object_story_spec?.link_data?.description;
+        ? formData.object_story_spec?.link_data?.name
+        : formData.object_story_spec?.link_data?.description;
 
     if (!currentText?.trim()) {
       setAiError(`Please enter ${field} text to rephrase`);
@@ -256,7 +261,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
       if (response.success && response.data) {
         handleLinkDataChange(field, response.data.generatedText);
         setAiSuccess(`${field.charAt(0).toUpperCase() + field.slice(1)} rephrased successfully!`);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setAiSuccess(null), 3000);
       } else {
@@ -323,7 +328,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
     if (obj === null || obj === undefined) return undefined;
     if (typeof obj !== 'object') return obj;
     if (Array.isArray(obj)) return obj.filter(item => item !== null && item !== undefined);
-    
+
     const cleaned: any = {};
     for (const [key, value] of Object.entries(obj)) {
       if (value !== null && value !== undefined && value !== '') {
@@ -359,7 +364,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
         if (!formData.object_story_spec?.link_data?.link) {
           throw new Error('Link URL is required for link creatives');
         }
-        
+
         // Validate URL format
         const linkUrl = formData.object_story_spec.link_data.link;
         try {
@@ -367,7 +372,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
         } catch (urlError) {
           throw new Error('Please enter a valid URL (e.g., https://example.com)');
         }
-        
+
         if (!formData.object_story_spec?.link_data?.message) {
           throw new Error('Message is required for link creatives');
         }
@@ -456,26 +461,26 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
         onClose();
       } catch (createError: any) {
         console.error('Detailed error creating creative:', createError);
-        
+
         // Try to extract more specific error information
         let errorMessage = createError.message || 'Failed to create creative';
-        
+
         // Check for common Facebook API errors
         if (errorMessage.includes('Invalid parameter')) {
           errorMessage += '\n\nCommon issues:\n- Facebook Page ID might be incorrect (should be numeric only)\n- Image hash might be invalid (for image creatives)\n- Link URL might be invalid (for link creatives)\n- Required fields might be missing\n- Page permissions might be insufficient\n- Creative payload structure might be incorrect';
         }
-        
+
         if (errorMessage.includes('Insufficient permissions')) {
           errorMessage = 'Insufficient permissions. Please make sure:\n- Your Facebook account has admin access to the page\n- The app has the necessary permissions\n- The access token is valid';
         }
-        
+
         if (errorMessage.includes('Invalid Page ID')) {
           errorMessage = 'Invalid Facebook Page ID. Please check:\n- The Page ID is correct (numeric only)\n- You have admin access to the page\n- The page is active and published';
         }
-        
+
         throw new Error(errorMessage);
       }
-      
+
       // Reset form
       setFormData({
         name: '',
@@ -529,7 +534,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
       setAiTargetAudience('');
       setAiTone('persuasive');
       setAiObjective('conversions');
-      
+
       onClose();
     }
   };
@@ -575,11 +580,10 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setCreativeType('link')}
-                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
-                  creativeType === 'link'
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${creativeType === 'link'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
               >
                 <LinkIcon size={24} />
                 <span className="text-sm font-medium">Link</span>
@@ -587,11 +591,10 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setCreativeType('image')}
-                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
-                  creativeType === 'image'
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${creativeType === 'image'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
               >
                 <Image size={24} />
                 <span className="text-sm font-medium">Image</span>
@@ -599,11 +602,10 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setCreativeType('video')}
-                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
-                  creativeType === 'video'
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${creativeType === 'video'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
               >
                 <Video size={24} />
                 <span className="text-sm font-medium">Video</span>
@@ -611,11 +613,10 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setCreativeType('carousel')}
-                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
-                  creativeType === 'carousel'
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${creativeType === 'carousel'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
               >
                 <Palette size={24} />
                 <span className="text-sm font-medium">Carousel</span>
@@ -682,14 +683,14 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2">
                 <p className="text-blue-800 text-sm">
-                  <strong>Tips for finding your Facebook Page ID:</strong><br/>
-                  1. Go to your Facebook Page<br/>
-                  2. Click "About" in the left sidebar<br/>
-                  3. Scroll down to find "Page ID" or "Facebook Page ID"<br/>
-                  4. It should be a long number (e.g., 123456789012345)<br/>
-                  <br/>
-                  <strong>Important:</strong> You must have admin access to the page and permission to create ads for it.<br/>
-                  <br/>
+                  <strong>Tips for finding your Facebook Page ID:</strong><br />
+                  1. Go to your Facebook Page<br />
+                  2. Click "About" in the left sidebar<br />
+                  3. Scroll down to find "Page ID" or "Facebook Page ID"<br />
+                  4. It should be a long number (e.g., 123456789012345)<br />
+                  <br />
+                  <strong>Important:</strong> You must have admin access to the page and permission to create ads for it.<br />
+                  <br />
                   <strong>Note:</strong> If the "Show My Available Pages" button doesn't work, it may be due to Facebook permissions. You can still enter the Page ID manually.
                 </p>
                 <div className="mt-3">
@@ -748,7 +749,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
           {creativeType === 'link' && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Link Creative Details</h3>
-              
+
               {/* AI Helper Section */}
               <div className="border-t border-b py-4">
                 <div className="flex items-center justify-between mb-3">
@@ -765,7 +766,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                     {showAiHelper ? 'Hide' : 'Show'} AI Helper
                   </Button>
                 </div>
-                
+
                 {showAiHelper && (
                   <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
                     <div className="grid grid-cols-2 gap-4">
@@ -794,7 +795,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Product Description
@@ -807,7 +808,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                         placeholder="Describe your product or service"
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -861,7 +862,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                         <p className="text-red-800 text-sm">{aiError}</p>
                       </div>
                     )}
-                    
+
                     {aiSuccess && (
                       <div className="bg-green-50 border border-green-200 rounded-md p-3">
                         <p className="text-green-800 text-sm">{aiSuccess}</p>
@@ -870,7 +871,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                   </div>
                 )}
               </div>
-              
+
               <div>
                 <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-1">
                   Link URL <span className="text-red-500">*</span>
@@ -1020,7 +1021,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
           {creativeType === 'image' && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Image Creative Details</h3>
-              
+
               <div>
                 <label htmlFor="imageHash" className="block text-sm font-medium text-gray-700 mb-1">
                   Image Hash <span className="text-red-500">*</span>
