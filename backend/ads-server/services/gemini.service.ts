@@ -27,6 +27,10 @@ export interface GeminiResponse {
     originalText?: string;
     generatedText: string;
     suggestions?: string[];
+    explanation?: string;
+    key_improvements?: string[];
+    hashtags?: string[];
+    tips?: string[];
     metadata?: {
       tone: string;
       platform: string;
@@ -119,8 +123,10 @@ Format your response as JSON:
         success: true,
         data: {
           originalText: text,
-          generatedText: parsedResponse.rephrased_text,
+          generatedText: parsedResponse.rephrased_text || responseText,
           suggestions: parsedResponse.alternatives || [],
+          explanation: parsedResponse.explanation,
+          key_improvements: parsedResponse.key_improvements || [],
           metadata: {
             tone,
             platform,
@@ -244,6 +250,8 @@ Format your response as JSON:
           suggestions: parsedResponse.alternatives?.map((alt: any) => 
             `${alt.headline}\n\n${alt.primary_text}\n\n${alt.description}`
           ) || [],
+          hashtags: parsedResponse.hashtags || [],
+          tips: parsedResponse.tips || [],
           metadata: {
             tone,
             platform,

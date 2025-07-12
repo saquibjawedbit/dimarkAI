@@ -26,6 +26,10 @@ export interface GeminiResponse {
     originalText?: string;
     generatedText: string;
     suggestions?: string[];
+    explanation?: string;
+    key_improvements?: string[];
+    hashtags?: string[];
+    tips?: string[];
     metadata?: {
       tone: string;
       platform: string;
