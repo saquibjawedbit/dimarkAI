@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { config } from '../../common/config/config';
 
 export interface RephraseTextRequest {
   text: string;
@@ -85,6 +84,8 @@ Please provide:
 1. A rephrased version that's more effective for Facebook ads
 2. 2-3 alternative variations
 3. Brief explanation of what makes the rephrased version better
+4. Don't add free shipping or discounts unless explicitly mentioned
+5. Use Rs if you have to mention currency
 
 Format your response as JSON:
 {
