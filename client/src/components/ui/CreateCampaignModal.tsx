@@ -256,7 +256,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Daily Budget ($) *
+                    Daily Budget (₹) *
                   </label>
                   <Input
                     type="number"
@@ -271,7 +271,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lifetime Budget ($)
+                    Lifetime Budget (₹)
                   </label>
                   <Input
                     type="number"
