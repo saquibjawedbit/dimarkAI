@@ -73,7 +73,7 @@ export const DashboardHome: React.FC = () => {
     },
     {
       name: 'Cost Per Click',
-      value: '$0.36',
+      value: '₹0.36',
       change: '-5.3%',
       trend: 'down' as const,
       icon: <CreditCard size={20} />,
@@ -163,11 +163,11 @@ export const DashboardHome: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Total Ad Spend (This Month)</span>
-                <span className="font-semibold">$4,234</span>
+                <span className="font-semibold">₹4,234</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Revenue Generated</span>
-                <span className="font-semibold text-success">$12,890</span>
+                <span className="font-semibold text-success">₹12,890</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Return on Ad Spend</span>
