@@ -782,7 +782,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                           placeholder="Enter product name"
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Target Audience
                         </label>
@@ -793,7 +793,7 @@ export const CreateCreativeModal: React.FC<CreateCreativeModalProps> = ({
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           placeholder="e.g., young professionals"
                         />
-                      </div>
+                      </div> */}
                     </div>
 
                     <div>
