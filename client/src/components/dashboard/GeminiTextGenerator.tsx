@@ -151,47 +151,17 @@ export const GeminiTextGenerator: React.FC = () => {
             if (response.success) {
 
 
-                // Parse the response if it's a JSON string
-                let parsedResult: any = response.data;
+                let parsedResult: any = response.data?.generatedText;
 
-                // Handle different response formats
-                if (typeof response.data === 'string') {
-                    let jsonString: string = response.data;
-
+                // Extract JSON from markdown (inside ```json ... ```)
+                const jsonMatch = parsedResult?.match(/```json\s*([\s\S]*?)\s*```/i);
+                if (jsonMatch && jsonMatch[1]) {
                     try {
-                        console.log('Original response data:', response.data);
-
-                        // Check if it's wrapped in markdown code blocks - improved regex
-                        const codeBlockRegex = /```(?:json|JSON)?\s*\n?([\s\S]*?)\n?```/g;
-                        const match = codeBlockRegex.exec(jsonString);
-
-                        if (match && match[1]) {
-                            // Extract the JSON content from the code block
-                            jsonString = match[1].trim();
-                            console.log('Extracted JSON from markdown:', jsonString);
-                        } else {
-                            // Try a more aggressive approach - look for { } brackets
-                            const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-                            if (jsonMatch) {
-                                jsonString = jsonMatch[0];
-                                console.log('Extracted JSON using bracket matching:', jsonString);
-                            }
-                        }
-
-                        // Try to parse as JSON
-                        parsedResult = JSON.parse(jsonString);
-                        console.log('Successfully parsed JSON:', parsedResult);
+                        parsedResult = JSON.parse(jsonMatch[1]);
                     } catch (e) {
-                        console.error('Failed to parse JSON response:', e);
-                        console.error('Final jsonString that failed:', jsonString);
-                        // If it's not valid JSON, treat it as plain text
-                        parsedResult = { generatedText: response.data };
+                        console.error("Failed to parse JSON:", e);
+                        parsedResult = {}; // fallback to empty object
                     }
-                }
-
-                // Ensure we have a valid object
-                if (!parsedResult || typeof parsedResult !== 'object') {
-                    parsedResult = { generatedText: String(response.data) };
                 }
 
                 // Map the parsed result to our expected format
@@ -242,8 +212,8 @@ export const GeminiTextGenerator: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('rephrase')}
                         className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'rephrase'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         <div className="flex items-center">
@@ -254,8 +224,8 @@ export const GeminiTextGenerator: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('generate')}
                         className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'generate'
-                                ? 'border-primary-500 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         <div className="flex items-center">
