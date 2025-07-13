@@ -164,12 +164,22 @@ export const GeminiTextGenerator: React.FC = () => {
                     }
                 }
 
+                console.log('Parsed result:', parsedResult);    
+
                 // Map the parsed result to our expected format
                 const formattedResult = {
-                    generatedText: parsedResult.generated_text || parsedResult.generatedText || parsedResult.rephrased_text || '',
+                    generatedText: parsedResult.primary_text || parsedResult.generated_text || parsedResult.generatedText || '',
+                    headline: parsedResult.headline || '',
+                    description: parsedResult.description || '',
                     explanation: parsedResult.explanation || '',
                     key_improvements: parsedResult.key_improvements || [],
-                    suggestions: parsedResult.alternatives || parsedResult.suggestions || [],
+                    suggestions: Array.isArray(parsedResult.alternatives)
+                        ? parsedResult.alternatives.map((alt: any) =>
+                            typeof alt === 'string'
+                                ? alt
+                                : alt.primary_text || alt.text || JSON.stringify(alt)
+                        )
+                        : [],
                     hashtags: parsedResult.hashtags || [],
                     tips: parsedResult.tips || [],
                     metadata: {
