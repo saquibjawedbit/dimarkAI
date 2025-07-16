@@ -15,8 +15,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -138,41 +137,39 @@ export default function RegisterPage() {
 
             {/* Registration Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                    First Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                      required
-                    />
-                  </div>
+              <div className="space-y-2">
+                <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    required
+                  />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                    Last Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                      required
-                    />
-                  </div>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    required
+                  />
                 </div>
               </div>
 
@@ -256,11 +253,10 @@ export default function RegisterPage() {
                   />
                   <div
                     onClick={() => setFormData({ ...formData, agreeToTerms: !formData.agreeToTerms })}
-                    className={`w-5 h-5 rounded border-2 cursor-pointer transition-all duration-300 flex items-center justify-center ${
-                      formData.agreeToTerms
+                    className={`w-5 h-5 rounded border-2 cursor-pointer transition-all duration-300 flex items-center justify-center ${formData.agreeToTerms
                         ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 border-fuchsia-500 shadow-fuchsia-500/30 shadow-md"
                         : "border-white/20 bg-white/10"
-                    } animate-fade-in-up delay-200`}
+                      } animate-fade-in-up delay-200`}
                   >
                     {formData.agreeToTerms && <Check className="w-3 h-3 text-white" />}
                   </div>

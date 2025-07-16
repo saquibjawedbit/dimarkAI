@@ -32,6 +32,12 @@ export class AuthController {
 
             const result = await this.authService.register(registerData);
 
+            res.cookie('accessToken', result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                sameSite: 'strict', // Prevent CSRF attacks
+            });
+
             res.status(201).json({
                 message: 'User registered successfully',
                 data: result
