@@ -201,9 +201,6 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 group"
-                    onClick={() => {
-                      window.location.href = "/dashboard"
-                    }}
                   >
                     Get Started Free
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
@@ -386,8 +383,66 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {featuresList.map((feature, index) => (
-              <FeatureCard key={index} feature={feature} />
+            {[
+              {
+                icon: Sparkles,
+                title: "Smart Ad Generator",
+                description: "AI creates compelling ad copy and visuals that convert",
+                gradient: "from-yellow-500 to-orange-600",
+                delay: "delay-100",
+              },
+              {
+                icon: Zap,
+                title: "Real-Time Optimization",
+                description: "Continuous performance monitoring and automatic adjustments",
+                gradient: "from-blue-500 to-indigo-600",
+                delay: "delay-200",
+              },
+              {
+                icon: Target,
+                title: "Target Audience Matching",
+                description: "Precision targeting based on your ideal customer profile",
+                gradient: "from-green-500 to-emerald-600",
+                delay: "delay-300",
+              },
+              {
+                icon: BarChart3,
+                title: "Visual Performance Dashboards",
+                description: "Beautiful analytics that make sense of your data",
+                gradient: "from-blue-500 to-cyan-600",
+                delay: "delay-100",
+              },
+              {
+                icon: Brain,
+                title: "AI Trained on Top-Performing Ads",
+                description: "Learn from millions of successful campaigns",
+                gradient: "from-pink-500 to-rose-600",
+                delay: "delay-200",
+              },
+              {
+                icon: Bot,
+                title: "Zero Ad Expertise Required",
+                description: "No marketing knowledge needed - AI handles everything",
+                gradient: "from-indigo-500 to-purple-600",
+                delay: "delay-300",
+              },
+            ].map((feature, index) => (
+              <Card
+                key={index}
+                className={`bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 group animate-fade-in-up ${feature.delay}`}
+              >
+                <CardContent className="p-6">
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110`}
+                  >
+                    <feature.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -504,8 +559,89 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <PricingCard key={index} plan={plan} index={index} />
+            {[
+              {
+                name: "Starter",
+                price: "$29",
+                period: "/month",
+                description: "Perfect for small businesses just getting started",
+                features: ["Up to 3 campaigns", "Basic AI optimization", "Email support", "Dashboard analytics"],
+                popular: false,
+              },
+              {
+                name: "Professional",
+                price: "$79",
+                period: "/month",
+                description: "Best for growing businesses with multiple campaigns",
+                features: [
+                  "Unlimited campaigns",
+                  "Advanced AI optimization",
+                  "Priority support",
+                  "Advanced analytics",
+                  "A/B testing",
+                  "Custom audiences",
+                ],
+                popular: true,
+              },
+              {
+                name: "Enterprise",
+                price: "$199",
+                period: "/month",
+                description: "For agencies and large businesses",
+                features: [
+                  "Everything in Professional",
+                  "White-label solution",
+                  "Dedicated account manager",
+                  "Custom integrations",
+                  "Advanced reporting",
+                  "24/7 phone support",
+                ],
+                popular: false,
+              },
+            ].map((plan, index) => (
+              <Card
+                key={index}
+                className={`relative bg-white border-gray-200 hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-fade-in-up delay-${index * 100} ${
+                  plan.popular ? "ring-2 ring-blue-500 shadow-lg" : ""
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1">
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+                <CardContent className="p-8">
+                  <div className="text-center mb-8">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                    <div className="flex items-baseline justify-center mb-4">
+                      <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
+                      <span className="text-gray-600 ml-1">{plan.period}</span>
+                    </div>
+                    <p className="text-gray-600">{plan.description}</p>
+                  </div>
+
+                  <ul className="space-y-4 mb-8">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center">
+                        <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                        <span className="text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className={`w-full rounded-full py-3 transition-all duration-300 transform hover:scale-105 ${
+                      plan.popular
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl"
+                        : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                    }`}
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -865,175 +1001,5 @@ export default function LandingPage() {
         }
       `}</style>
     </div>
-  )
-}
-// Pricing plans data
-type PricingPlan = {
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  popular: boolean;
-};
-
-const pricingPlans: PricingPlan[] = [
-  {
-    name: "Starter",
-    price: "$29",
-    period: "/month",
-    description: "Perfect for small businesses just getting started",
-    features: ["Up to 3 campaigns", "Basic AI optimization", "Email support", "Dashboard analytics"],
-    popular: false,
-  },
-  {
-    name: "Professional",
-    price: "$79",
-    period: "/month",
-    description: "Best for growing businesses with multiple campaigns",
-    features: [
-      "Unlimited campaigns",
-      "Advanced AI optimization",
-      "Priority support",
-      "Advanced analytics",
-      "A/B testing",
-      "Custom audiences",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "$199",
-    period: "/month",
-    description: "For agencies and large businesses",
-    features: [
-      "Everything in Professional",
-      "White-label solution",
-      "Dedicated account manager",
-      "Custom integrations",
-      "Advanced reporting",
-      "24/7 phone support",
-    ],
-    popular: false,
-  },
-]
-
-// Pricing card component
-type PricingCardProps = {
-  plan: PricingPlan;
-  index: number;
-};
-
-function PricingCard({ plan, index }: PricingCardProps) {
-  return (
-    <Card
-      className={`relative bg-white border-gray-200 hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-fade-in-up delay-${index * 100} ${
-        plan.popular ? "ring-2 ring-blue-500 shadow-lg" : ""
-      }`}
-    >
-      {plan.popular && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1">
-            Most Popular
-          </Badge>
-        </div>
-      )}
-      <CardContent className="p-8">
-        <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-          <div className="flex items-baseline justify-center mb-4">
-            <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
-            <span className="text-gray-600 ml-1">{plan.period}</span>
-          </div>
-          <p className="text-gray-600">{plan.description}</p>
-        </div>
-
-        <ul className="space-y-4 mb-8">
-          {plan.features.map((feature: string, featureIndex: number) => (
-            <li key={featureIndex} className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700">{feature}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Button
-          className={`w-full rounded-full py-3 transition-all duration-300 transform hover:scale-105 ${
-            plan.popular
-              ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl"
-              : "bg-gray-100 text-gray-900 hover:bg-gray-200"
-          }`}
-        >
-          Get Started
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
-
-// Features data
-const featuresList = [
-  {
-    icon: Sparkles,
-    title: "Smart Ad Generator",
-    description: "AI creates compelling ad copy and visuals that convert",
-    gradient: "from-yellow-500 to-orange-600",
-    delay: "delay-100",
-  },
-  {
-    icon: Zap,
-    title: "Real-Time Optimization",
-    description: "Continuous performance monitoring and automatic adjustments",
-    gradient: "from-blue-500 to-indigo-600",
-    delay: "delay-200",
-  },
-  {
-    icon: Target,
-    title: "Target Audience Matching",
-    description: "Precision targeting based on your ideal customer profile",
-    gradient: "from-green-500 to-emerald-600",
-    delay: "delay-300",
-  },
-  {
-    icon: BarChart3,
-    title: "Visual Performance Dashboards",
-    description: "Beautiful analytics that make sense of your data",
-    gradient: "from-blue-500 to-cyan-600",
-    delay: "delay-100",
-  },
-  {
-    icon: Brain,
-    title: "AI Trained on Top-Performing Ads",
-    description: "Learn from millions of successful campaigns",
-    gradient: "from-pink-500 to-rose-600",
-    delay: "delay-200",
-  },
-  {
-    icon: Bot,
-    title: "Zero Ad Expertise Required",
-    description: "No marketing knowledge needed - AI handles everything",
-    gradient: "from-indigo-500 to-purple-600",
-    delay: "delay-300",
-  },
-]
-
-// Feature card component
-function FeatureCard({ feature }: { feature: typeof featuresList[number] }) {
-  return (
-    <Card
-      className={`bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:shadow-xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 group animate-fade-in-up ${feature.delay}`}
-    >
-      <CardContent className="p-6">
-        <div
-          className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110`}
-        >
-          <feature.icon className="w-6 h-6 text-white" />
-        </div>
-        <h3 className="text-lg font-semibold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-          {feature.title}
-        </h3>
-        <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
-      </CardContent>
-    </Card>
   )
 }
