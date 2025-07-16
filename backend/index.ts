@@ -59,7 +59,6 @@ app.get('/api/health', async (req: Request, res: Response) => {
 // Authentication routes
 app.use('/api/auth', authRoutes);
 
-// Campaign routes (protected)
 app.use('/api/campaigns', AuthMiddleware.authenticateToken, campaignRoutes);
 app.use('/api/adsets', AuthMiddleware.authenticateToken, adSetRoutes);
 app.use('/api/creatives', AuthMiddleware.authenticateToken, creativeRoutes);

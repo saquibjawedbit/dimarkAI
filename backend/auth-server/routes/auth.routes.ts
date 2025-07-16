@@ -6,9 +6,9 @@ const router = Router();
 const authController = new AuthController();
 
 // Public routes
-router.post('/register', AuthMiddleware.rateLimit(5, 15 * 60 * 1000), authController.register.bind(authController));
-router.post('/facebook-login', AuthMiddleware.rateLimit(5, 15 * 60 * 1000), authController.facebookLogin.bind(authController));
-router.post('/login', AuthMiddleware.rateLimit(5, 15 * 60 * 1000), authController.login.bind(authController));
+router.post('/register', authController.register.bind(authController));
+router.post('/facebook-login', authController.facebookLogin.bind(authController));
+router.post('/login', authController.login.bind(authController));
 router.post('/refresh-token', authController.refreshToken.bind(authController));
 
 // Protected routes (require authentication)

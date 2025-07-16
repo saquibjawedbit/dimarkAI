@@ -112,6 +112,7 @@ export class AuthService {
         adsAccountId: adsAccountId || undefined
       });
     } else {
+      
       // Update existing user's ads account ID if they don't have one and we found one
       if (!user.adsAccountId && adsAccountId) {
         await this.userRepository.updateAdsAccountId(user._id, adsAccountId);
