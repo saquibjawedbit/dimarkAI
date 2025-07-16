@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Play, Sparkles, CheckCircle } from "lucide-react"
 import React from "react"
 import DashboardPreviewSection from "./DashboardPreviewSection"
+import { HeroSectionProps } from "./types"
 
-interface HeroSectionProps {
-  isVisible: boolean
-}
 
 export default function HeroSection({ isVisible }: HeroSectionProps) {
   return (

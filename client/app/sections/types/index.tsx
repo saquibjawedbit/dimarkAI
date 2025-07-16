@@ -5,3 +5,8 @@ export type Feature = {
   gradient: string
   delay: string
 }
+
+
+export interface HeroSectionProps {
+  isVisible: boolean
+}
