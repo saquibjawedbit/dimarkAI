@@ -44,12 +44,22 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen max-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 overflow-hidden">
+      {/* Animated Background Elements (from landing page) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-500"></div>
+        {/* Floating Orbs */}
+        <div className="absolute top-20 left-10 w-4 h-4 bg-blue-400/30 rounded-full animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-2 h-2 bg-indigo-400/40 rounded-full animate-float-medium"></div>
+        <div className="absolute bottom-40 left-20 w-6 h-6 bg-purple-400/20 rounded-full animate-float-fast"></div>
+        <div className="absolute bottom-20 right-10 w-3 h-3 bg-blue-500/30 rounded-full animate-float-slow"></div>
+        <div className="absolute top-1/2 left-1/4 w-5 h-5 bg-indigo-300/25 rounded-full animate-float-medium"></div>
+        <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-purple-500/35 rounded-full animate-float-fast"></div>
+        {/* Gradient Waves */}
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full animate-wave-1"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full animate-wave-2"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-indigo-300/5 to-blue-300/5 rounded-full animate-wave-3"></div>
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] animate-grid-move"></div>
       </div>
 
       <div className="w-full max-w-md relative z-10">
@@ -62,27 +72,27 @@ export default function RegisterPage() {
           Back to Home
         </Link>
 
-        <Card className="bg-white/10 border-white/20 backdrop-blur-2xl shadow-2xl max-h-[90vh] overflow-hidden">
+        <Card className="bg-white/80 border-gray-200/50 backdrop-blur-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-fade-in-up">
           <CardHeader className="text-center pb-6 flex-shrink-0">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="flex items-center justify-center space-x-3 mb-6 animate-fade-in-up">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg animate-float-fast">
                 <Bot className="w-7 h-7 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent animate-gradient-text">
                 DiMark AI
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p className="text-gray-300">Start your AI-powered marketing journey</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2 animate-fade-in">Create Account</h1>
+            <p className="text-gray-600 animate-fade-in delay-100">Start your AI-powered marketing journey</p>
           </CardHeader>
 
-          <CardContent className="space-y-4 overflow-y-auto px-6 pb-6" style={{ maxHeight: "calc(90vh - 120px)" }}>
+          <CardContent className="space-y-4 overflow-y-auto px-6 pb-6 animate-fade-in-up delay-200" style={{ maxHeight: "calc(90vh - 120px)" }}>
             {/* Social Login Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-3 animate-fade-in-up delay-200">
               <Button
                 onClick={() => handleSocialLogin("google")}
                 variant="outline"
-                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm rounded-full py-6 transition-all duration-300"
+                className="w-full bg-white/70 border-gray-300 text-gray-700 hover:bg-white hover:shadow-md backdrop-blur-sm rounded-full py-6 transition-all duration-300 animate-fade-in-up"
               >
                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                   <path
@@ -108,7 +118,7 @@ export default function RegisterPage() {
               <Button
                 onClick={() => handleSocialLogin("facebook")}
                 variant="outline"
-                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm rounded-full py-6 transition-all duration-300"
+                className="w-full bg-white/70 border-gray-300 text-gray-700 hover:bg-white hover:shadow-md backdrop-blur-sm rounded-full py-6 transition-all duration-300 animate-fade-in-up delay-100"
               >
                 <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -117,10 +127,10 @@ export default function RegisterPage() {
               </Button>
             </div>
 
-            <div className="relative">
-              <Separator className="bg-white/20" />
+            <div className="relative animate-fade-in-up delay-200">
+              <Separator className="bg-gray-200/50" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 px-4 text-gray-400 text-sm">
+                <span className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 text-gray-500 text-sm animate-gradient-text">
                   or create account with email
                 </span>
               </div>
@@ -130,7 +140,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium text-gray-300">
+                  <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
                     First Name
                   </label>
                   <div className="relative">
@@ -141,14 +151,14 @@ export default function RegisterPage() {
                       placeholder="John"
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium text-gray-300">
+                  <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
                     Last Name
                   </label>
                   <div className="relative">
@@ -159,7 +169,7 @@ export default function RegisterPage() {
                       placeholder="Doe"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                       required
                     />
                   </div>
@@ -167,7 +177,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email Address
                 </label>
                 <div className="relative">
@@ -178,14 +188,14 @@ export default function RegisterPage() {
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-300">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <div className="relative">
@@ -196,7 +206,7 @@ export default function RegisterPage() {
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="pl-10 pr-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                     required
                   />
                   <button
@@ -210,7 +220,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-300">
+                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -221,7 +231,7 @@ export default function RegisterPage() {
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="pl-10 pr-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                     required
                   />
                   <button
@@ -248,22 +258,22 @@ export default function RegisterPage() {
                     onClick={() => setFormData({ ...formData, agreeToTerms: !formData.agreeToTerms })}
                     className={`w-5 h-5 rounded border-2 cursor-pointer transition-all duration-300 flex items-center justify-center ${
                       formData.agreeToTerms
-                        ? "bg-gradient-to-r from-purple-500 to-indigo-500 border-purple-500"
+                        ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 border-fuchsia-500 shadow-fuchsia-500/30 shadow-md"
                         : "border-white/20 bg-white/10"
-                    }`}
+                    } animate-fade-in-up delay-200`}
                   >
                     {formData.agreeToTerms && <Check className="w-3 h-3 text-white" />}
                   </div>
                 </div>
-                <label htmlFor="agreeToTerms" className="text-sm text-gray-300 leading-5">
+                <label htmlFor="agreeToTerms" className="text-sm text-blue-600 leading-5 animate-fade-in-up delay-200">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-purple-400 hover:text-purple-300 transition-colors duration-300">
+                  <Link href="/terms" className="text-blue-500 hover:text-blue-400 underline underline-offset-2 transition-colors duration-300">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="text-purple-400 hover:text-purple-300 transition-colors duration-300"
+                    className="text-blue-500 hover:text-blue-400 underline underline-offset-2 transition-colors duration-300"
                   >
                     Privacy Policy
                   </Link>
@@ -273,24 +283,24 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={isLoading || !formData.agreeToTerms}
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-full py-6 text-lg font-semibold shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full py-6 text-lg font-semibold shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in-up delay-300"
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    <div className="w-5 h-5 border-2 border-blue-300/30 border-t-blue-400 rounded-full animate-spin mr-2"></div>
                     Creating Account...
                   </div>
                 ) : (
-                  "Create Account"
+                  <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent animate-gradient-text">Create Account</span>
                 )}
               </Button>
             </form>
 
-            <div className="text-center text-gray-300">
+            <div className="text-center text-blue-600 animate-fade-in-up delay-300">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-purple-400 hover:text-purple-300 font-semibold transition-colors duration-300"
+                className="text-blue-500 hover:text-blue-400 font-semibold underline underline-offset-2 transition-colors duration-300"
               >
                 Sign in
               </Link>
