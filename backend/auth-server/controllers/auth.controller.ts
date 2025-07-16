@@ -19,7 +19,6 @@ export class AuthController {
      */
     async register(req: Request, res: Response): Promise<void> {
         try {
-            console.log('Registering user:', req.body);
             const registerData: RegisterRequest = req.body;
 
             if (!registerData.name || !registerData.email || !registerData.password) {

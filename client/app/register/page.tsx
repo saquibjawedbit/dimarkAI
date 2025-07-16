@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Bot, Mail, Lock, Eye, EyeOff, User, ArrowLeft, Check } from "lucide-react"
+import { ApiEndpoints } from "@/api/endpoints/apiConfig";
+import { useAuth } from "@/context/AuthContext";
+import axiosClient from "@/api/axiosClient";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -21,20 +24,41 @@ export default function RegisterPage() {
     confirmPassword: "",
     agreeToTerms: false,
   })
+  const { setUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!")
-      return
+    e.preventDefault();
+    if (!formData.agreeToTerms) {
+      alert("You must agree to the Terms and Privacy Policy.");
+      return;
     }
-    setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-
-    // Redirect to onboarding after successful registration
-    window.location.href = "/onboarding"
+    if (!formData.fullName.trim() || !formData.email.trim() || !formData.password.trim() || !formData.confirmPassword.trim()) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await axiosClient.post(ApiEndpoints.register, {
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      });
+      const data = res.data;
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("accessToken", data.accessToken);
+      window.location.href = "/onboarding";
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err.message || "Registration failed";
+      alert(message);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(false);
   }
 
   const handleSocialLogin = (provider: string) => {
@@ -71,7 +95,7 @@ export default function RegisterPage() {
           Back to Home
         </Link>
 
-        <Card className="bg-white/80 border-gray-200/50 backdrop-blur-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-fade-in-up">
+        <Card className="bg-white/80 border-gray-200/50 backdrop-blur-2xl shadow-2xl animate-fade-in-up">
           <CardHeader className="text-center pb-6 flex-shrink-0">
             <div className="flex items-center justify-center space-x-3 mb-6 animate-fade-in-up">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg animate-float-fast">
@@ -85,7 +109,7 @@ export default function RegisterPage() {
             <p className="text-gray-600 animate-fade-in delay-100">Start your AI-powered marketing journey</p>
           </CardHeader>
 
-          <CardContent className="space-y-4 overflow-y-auto px-6 pb-6 animate-fade-in-up delay-200" style={{ maxHeight: "calc(90vh - 120px)" }}>
+          <CardContent className="space-y-4 px-8 py-8 animate-fade-in-up delay-200">
             {/* Social Login Buttons */}
             <div className="space-y-3 animate-fade-in-up delay-200">
               <Button
@@ -142,14 +166,14 @@ export default function RegisterPage() {
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-7 h-7 text-blue-950 drop-shadow-none bg-transparent" style={{filter: 'none', opacity: 1}} />
                   <Input
                     id="fullName"
                     type="text"
                     placeholder="John Doe"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    className="pl-12 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 rounded-full py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -160,32 +184,14 @@ export default function RegisterPage() {
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-7 h-7 text-blue-950 drop-shadow-none bg-transparent" style={{filter: 'none', opacity: 1}} />
                   <Input
                     id="email"
                     type="email"
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="pl-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    className="pl-12 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 rounded-full py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -196,20 +202,20 @@ export default function RegisterPage() {
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-7 h-7 text-blue-950 drop-shadow-none bg-transparent" style={{filter: 'none', opacity: 1}} />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="pl-10 pr-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    className="pl-12 pr-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 rounded-full py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-950 hover:text-blue-700 transition-colors duration-300"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -221,47 +227,38 @@ export default function RegisterPage() {
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-7 h-7 text-blue-950 drop-shadow-none bg-transparent" style={{filter: 'none', opacity: 1}} />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="pl-10 pr-10 bg-white/70 border-gray-300 text-gray-800 placeholder:text-gray-400 rounded-full py-6 backdrop-blur-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    className="pl-12 pr-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 rounded-full py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-300"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-950 hover:text-blue-700 transition-colors duration-300"
                   >
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 mt-2">
                 <div className="relative">
                   <input
                     id="agreeToTerms"
                     type="checkbox"
                     checked={formData.agreeToTerms}
                     onChange={(e) => setFormData({ ...formData, agreeToTerms: e.target.checked })}
-                    className="sr-only"
+                    className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                     required
                   />
-                  <div
-                    onClick={() => setFormData({ ...formData, agreeToTerms: !formData.agreeToTerms })}
-                    className={`w-5 h-5 rounded border-2 cursor-pointer transition-all duration-300 flex items-center justify-center ${formData.agreeToTerms
-                        ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 border-fuchsia-500 shadow-fuchsia-500/30 shadow-md"
-                        : "border-white/20 bg-white/10"
-                      } animate-fade-in-up delay-200`}
-                  >
-                    {formData.agreeToTerms && <Check className="w-3 h-3 text-white" />}
-                  </div>
                 </div>
-                <label htmlFor="agreeToTerms" className="text-sm text-blue-600 leading-5 animate-fade-in-up delay-200">
+                <label htmlFor="agreeToTerms" className="text-sm text-blue-600 leading-5 animate-fade-in-up delay-200 cursor-pointer select-none">
                   I agree to the{" "}
                   <Link href="/terms" className="text-blue-500 hover:text-blue-400 underline underline-offset-2 transition-colors duration-300">
                     Terms of Service
