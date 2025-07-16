@@ -13,22 +13,13 @@ import FAQSection from "./sections/FAQSection"
 import CTASection from "./sections/CTASection"
 import FooterSection from "./sections/FooterSection"
 import { Bot } from "lucide-react"
-import { Button } from "../components/ui/button" 
+import { Button } from "../components/ui/button"
+import Link from "next/link"
 
 
 export default function LandingPage() {
-  const [isVisible, setIsVisible] = useState(false)
-  const [progressValue, setProgressValue] = useState(0)
+  const [isVisible, setIsVisible] = useState(true)
 
-  useEffect(() => {
-    setIsVisible(true)
-    const progressTimer = setTimeout(() => {
-      setProgressValue(75)
-    }, 1500)
-    return () => {
-      clearTimeout(progressTimer)
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
@@ -94,12 +85,14 @@ export default function LandingPage() {
               >
                 Pricing
               </a>
-              <Button
-                variant="outline"
-                className="rounded-full bg-white/50 border-gray-300 hover:bg-white hover:shadow-md transition-all duration-300 hover:scale-105"
-              >
-                Sign In
-              </Button>
+              <Link href="/login">
+                <Button
+                  variant="outline"
+                  className="rounded-full bg-white/50 border-gray-300 hover:bg-white hover:shadow-md transition-all duration-300 hover:scale-105"
+                >
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
