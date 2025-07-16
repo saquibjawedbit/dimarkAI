@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { 
-  LoginRequest, 
-  RegisterRequest, 
-  AppError 
+import {
+    LoginRequest,
+    RegisterRequest,
+    AppError
 } from '../../common';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { AuthService } from '../services/auth.service';
@@ -21,7 +21,7 @@ export class AuthController {
         try {
             console.log('Registering user:', req.body);
             const registerData: RegisterRequest = req.body;
-            
+
             if (!registerData.name || !registerData.email || !registerData.password) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -29,9 +29,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.register(registerData);
-            
+
             res.status(201).json({
                 message: 'User registered successfully',
                 data: result
@@ -44,7 +44,7 @@ export class AuthController {
     async facebookLogin(req: Request, res: Response): Promise<void> {
         try {
             const { accessToken } = req.body;
-            
+
             if (!accessToken) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -52,9 +52,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.facebookLogin(accessToken);
-            
+
             res.status(200).json({
                 message: 'Facebook login successful',
                 data: result
@@ -63,14 +63,14 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * User login
      */
     async login(req: Request, res: Response): Promise<void> {
         try {
             const loginData: LoginRequest = req.body;
-            
+
             if (!loginData.email || !loginData.password) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -78,9 +78,15 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.login(loginData);
-            
+
+            res.cookie('accessToken', result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                sameSite: 'strict', // Prevent CSRF attacks
+            });
+
             res.status(200).json({
                 message: 'Login successful',
                 data: result
@@ -89,7 +95,7 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * User logout (client-side token removal)
      */
@@ -99,14 +105,14 @@ export class AuthController {
             data: { message: 'Token should be removed from client storage' }
         });
     }
-    
+
     /**
      * Refresh access token
      */
     async refreshToken(req: Request, res: Response): Promise<void> {
         try {
             const { refreshToken } = req.body;
-            
+
             if (!refreshToken) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -114,9 +120,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.refreshToken(refreshToken);
-            
+
             res.status(200).json({
                 message: 'Token refreshed successfully',
                 data: result
@@ -125,7 +131,7 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Get current user profile
      */
@@ -138,9 +144,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const user = await this.authService.getUserById(req.user.userId);
-            
+
             if (!user) {
                 res.status(404).json({
                     error: 'User not found',
@@ -148,7 +154,7 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             res.status(200).json({
                 message: 'Profile retrieved successfully',
                 data: { user }
@@ -157,7 +163,7 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Update user password
      */
@@ -170,9 +176,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const { currentPassword, newPassword } = req.body;
-            
+
             if (!currentPassword || !newPassword) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -180,9 +186,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             await this.authService.updatePassword(req.user.userId, currentPassword, newPassword);
-            
+
             res.status(200).json({
                 message: 'Password updated successfully'
             });
@@ -190,14 +196,14 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Get all users (admin only)
      */
     async getAllUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const users = await this.authService.getAllUsers();
-            
+
             res.status(200).json({
                 message: 'Users retrieved successfully',
                 data: { users, count: users.length }
@@ -206,14 +212,14 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Delete user (admin only)
      */
     async deleteUser(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const { userId } = req.params;
-            
+
             if (!userId) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -221,9 +227,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const deleted = await this.authService.deleteUser(userId);
-            
+
             if (!deleted) {
                 res.status(404).json({
                     error: 'User not found',
@@ -231,7 +237,7 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             res.status(200).json({
                 message: 'User deleted successfully'
             });
@@ -254,7 +260,7 @@ export class AuthController {
             }
 
             const token = await this.authService.getFacebookToken(req.user.userId);
-            
+
             if (!token) {
                 res.status(404).json({
                     error: 'Token not found',
@@ -286,7 +292,7 @@ export class AuthController {
             }
 
             const hasToken = await this.authService.hasFacebookToken(req.user.userId);
-            
+
             res.status(200).json({
                 message: 'Facebook token status retrieved',
                 data: { hasToken }
@@ -310,7 +316,7 @@ export class AuthController {
             }
 
             const removed = await this.authService.removeFacebookToken(req.user.userId);
-            
+
             res.status(200).json({
                 message: removed ? 'Facebook token removed successfully' : 'No Facebook token to remove',
                 data: { removed }

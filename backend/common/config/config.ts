@@ -37,6 +37,7 @@ interface Config {
   jwt: JWTConfig;
   redis: RedisConfig;
   gemini: GeminiConfig;
+  allowedOrigin: string;
 }
 
 export const config: Config = {
@@ -63,6 +64,7 @@ export const config: Config = {
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',
   },
+  allowedOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
 };
 
 // Validate required environment variables

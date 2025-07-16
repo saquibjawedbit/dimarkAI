@@ -1,4 +1,9 @@
+
 "use client"
+
+import { useAuth } from "../../context/AuthContext"
+import axiosClient from "../../api/axiosClient"
+import { ApiEndpoints } from "../../api/endpoints/apiConfig"
 
 import React from "react"
 import { useState } from "react"
@@ -16,13 +21,30 @@ export default function LoginPage() {
     email: "",
     password: "",
   })
+  const [error, setError] = useState<string | null>(null)
+
+  // AuthContext
+  const { setUser } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
+    setError(null)
+    try {
+      const response = await axiosClient.post(ApiEndpoints.login, {
+        email: formData.email,
+        password: formData.password,
+      })
+      const { user, accessToken } = response.data
+      localStorage.setItem("user", JSON.stringify(user))
+      localStorage.setItem("accessToken", accessToken)
+      setUser(user)
+      window.location.href = "/dashboard"
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err.message || "Login failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSocialLogin = (provider: string) => {
@@ -125,6 +147,9 @@ export default function LoginPage() {
 
             {/* Email/Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="text-red-500 text-sm text-center">{error}</div>
+              )}
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email Address
@@ -199,9 +224,8 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
-
-            <div className="text-center text-blue-600">
-              Don't have an account?{" "}
+            <div className="text-center text-blue-600 mt-4">
+              {"Don't have an account? "}
               <Link
                 href="/register"
                 className="text-blue-500 hover:text-blue-400 font-semibold underline underline-offset-2 transition-colors duration-300"

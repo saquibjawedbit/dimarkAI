@@ -16,9 +16,14 @@ dotenv.config();
 
 const app = express();
 const PORT = config.server.port;
+const allowedOrigin = config.allowedOrigin || 'http://localhost:3000';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
