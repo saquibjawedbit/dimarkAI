@@ -11,6 +11,9 @@ export interface IOrganization extends Document {
   experience?: string;
   website?: string;
   location?: string;
+  presenceType?: 'online' | 'offline' | 'both' | string;
+  numberOfStores?: number;
+  regions?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,6 +68,22 @@ const organizationSchema = new Schema<IOrganization>(
       trim: true,
     },
     location: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    presenceType: {
+      type: String,
+      required: false,
+      enum: ['online', 'offline', 'both'],
+      trim: true,
+    },
+    numberOfStores: {
+      type: Number,
+      required: false,
+      min: 1,
+    },
+    regions: {
       type: String,
       required: false,
       trim: true,

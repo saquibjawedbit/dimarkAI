@@ -51,6 +51,7 @@ export default function RegisterPage() {
       setUser(data.user);
       localStorage.setItem("user", JSON.stringify(data.data.user));
       localStorage.setItem("accessToken", data.data.accessToken);
+      localStorage.setItem("refreshToken", data.data.refreshToken);
       window.location.href = "/onboarding";
       
     } catch (err: any) {

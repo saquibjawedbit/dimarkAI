@@ -35,9 +35,10 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       })
-      const { user, accessToken } = response.data
+      const { user, accessToken, refreshToken } = response.data.data
       localStorage.setItem("user", JSON.stringify(user))
       localStorage.setItem("accessToken", accessToken)
+      localStorage.setItem("refreshToken", refreshToken)
       setUser(user)
       window.location.href = "/dashboard"
     } catch (err: any) {
