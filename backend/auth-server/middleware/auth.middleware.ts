@@ -14,7 +14,6 @@ export class AuthMiddleware {
     try {
       const authHeader = req.headers.authorization;
       const token = AuthUtil.extractTokenFromHeader(authHeader);
-      
       if (!token) {
         res.status(401).json({
           error: 'Access denied',

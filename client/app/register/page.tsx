@@ -49,9 +49,10 @@ export default function RegisterPage() {
       });
       const data = res.data;
       setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+      localStorage.setItem("accessToken", data.data.accessToken);
       window.location.href = "/onboarding";
+      
     } catch (err: any) {
       const message = err?.response?.data?.message || err.message || "Registration failed";
       alert(message);

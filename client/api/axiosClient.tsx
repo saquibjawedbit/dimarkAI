@@ -8,4 +8,19 @@ const axiosClient = axios.create({
   },
 });
 
+// Add a request interceptor to include Authorization header if token exists
+axiosClient.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default axiosClient;

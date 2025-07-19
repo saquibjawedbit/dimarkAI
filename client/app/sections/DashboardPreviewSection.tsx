@@ -15,7 +15,7 @@ export default function DashboardPreviewSection({ progressValue }: { progressVal
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 hover:shadow-md transition-all duration-300 hover:scale-105">
-            <div className="text-2xl font-bold text-blue-600 animate-count-up">₹2,847</div>
+            <div className="text-2xl font-bold text-blue-600 animate-count-up">₹2,84,428</div>
               <div className="text-sm text-gray-600">Revenue Generated</div>
             </div>
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 hover:shadow-md transition-all duration-300 hover:scale-105">

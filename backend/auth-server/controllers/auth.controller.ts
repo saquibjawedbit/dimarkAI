@@ -35,7 +35,7 @@ export class AuthController {
             res.cookie('accessToken', result.accessToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-                sameSite: 'strict', // Prevent CSRF attacks
+                sameSite: 'none', // Prevent CSRF attacks
             });
 
             res.status(201).json({
@@ -90,7 +90,7 @@ export class AuthController {
             res.cookie('accessToken', result.accessToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-                sameSite: 'strict', // Prevent CSRF attacks
+                sameSite: 'none', // Prevent CSRF attacks
             });
 
             res.status(200).json({
@@ -254,6 +254,7 @@ export class AuthController {
 
     async onBoardUser(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
+
             if (!req.user) {
                 res.status(401).json({
                     error: 'Unauthorized',
@@ -264,7 +265,8 @@ export class AuthController {
 
             // Expect onboarding data in request body
             const data : IOrganization = req.body;
-
+            
+            console.log('Onboarding data received:', data);
             // Save onboarding data in DB (implement this in your AuthService)
             const onboarded = await this.authService.onBoardUser(req.user.userId, data);
 

@@ -275,10 +275,11 @@ export class AuthService {
       throw new NotFoundError('User not found');
     }
     // Upsert organization for the user
-    const organization = await this.organizationRepository.upsertByUserId(userId, {
-      ...data,
-      userId
+    const organization = await this.organizationRepository.create({
+      userId: user._id,
+      ...data
     });
+
     return organization;
   }
   

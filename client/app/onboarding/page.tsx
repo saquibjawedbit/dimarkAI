@@ -23,6 +23,9 @@ import {
   budgetRanges,
   goals,
 } from "./constants/constants"
+import axiosClient from "@/api/axiosClient"
+import { ApiEndpoints } from "@/api/endpoints/apiConfig"
+import { toast } from "sonner"
 
 
 export default function OnboardingPage() {
@@ -68,10 +71,16 @@ export default function OnboardingPage() {
     setFormData({ ...formData, goals: updatedGoals })
   }
 
-  const handleFinish = () => {
-    console.log("Onboarding completed:", formData)
-
-    
+  const handleFinish = async () => {
+    try {
+      await axiosClient.post(ApiEndpoints.onboard, {
+        ...formData,
+      })
+    } catch (error) {
+      console.error("Error during onboarding:", error)
+      toast.error("Failed to complete onboarding. Please try again.")
+      return;
+    }
 
     // Redirect to dashboard
     window.location.href = "/dashboard"

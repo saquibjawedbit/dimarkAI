@@ -6,7 +6,7 @@ export interface IOrganization extends Document {
   businessType?: string;
   businessDescription?: string;
   targetAudience?: string;
-  budget?: number;
+  budget?: 'small' | 'medium' | 'large' | string;
   goals?: string[];
   experience?: string;
   website?: string;
@@ -44,8 +44,10 @@ const organizationSchema = new Schema<IOrganization>(
       trim: true,
     },
     budget: {
-      type: Number,
+      type: String,
       required: false,
+      enum: ['small', 'medium', 'large', 'enterprise'],
+      trim: true,
     },
     goals: {
       type: [String],
