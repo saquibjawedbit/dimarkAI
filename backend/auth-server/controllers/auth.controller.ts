@@ -6,6 +6,7 @@ import {
 } from '../../common';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { AuthService } from '../services/auth.service';
+import { IOrganization } from '../../common/models/Organization';
 
 export class AuthController {
     private authService: AuthService;
@@ -245,6 +246,31 @@ export class AuthController {
 
             res.status(200).json({
                 message: 'User deleted successfully'
+            });
+        } catch (error) {
+            this.handleError(res, error);
+        }
+    }
+
+    async onBoardUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated'
+                });
+                return;
+            }
+
+            // Expect onboarding data in request body
+            const data : IOrganization = req.body;
+
+            // Save onboarding data in DB (implement this in your AuthService)
+            const onboarded = await this.authService.onBoardUser(req.user.userId, data);
+
+            res.status(200).json({
+                message: 'User onboarded successfully',
+                data: { onboarded }
             });
         } catch (error) {
             this.handleError(res, error);

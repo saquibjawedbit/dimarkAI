@@ -15,6 +15,8 @@ router.post('/refresh-token', authController.refreshToken.bind(authController));
 router.post('/logout', AuthMiddleware.authenticateToken, authController.logout.bind(authController));
 router.get('/profile', AuthMiddleware.authenticateToken, authController.getProfile.bind(authController));
 router.put('/password', AuthMiddleware.authenticateToken, authController.updatePassword.bind(authController));
+router.post('/onboard', AuthMiddleware.authenticateToken, authController.onBoardUser.bind(authController));
+
 
 // Facebook token management routes
 router.get('/facebook-token/status', AuthMiddleware.authenticateToken, authController.hasFacebookToken.bind(authController));

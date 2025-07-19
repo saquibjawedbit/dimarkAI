@@ -1,66 +1,80 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IOrganization extends Document {
-  name: string;
-  description?: string;
-  url?: string;
-  socials?: {
-    twitter?: string;
-    facebook?: string;
-    linkedin?: string;
-    instagram?: string;
-    [key: string]: string | undefined;
-  };
-  logo?: string;
-  logos?: string[];
+  userId: string;
+  businessName?: string;
+  businessType?: string;
+  businessDescription?: string;
+  targetAudience?: string;
+  budget?: number;
   goals?: string[];
+  experience?: string;
+  website?: string;
+  location?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const organizationSchema = new Schema<IOrganization>(
   {
-    name: {
+    // Onboarding fields
+    userId: {
       type: String,
       required: true,
       trim: true,
-      minlength: 2,
-      maxlength: 100,
     },
-    description: {
+    businessName: {
       type: String,
-      trim: true,
-      maxlength: 500,
-    },
-    url: {
-      type: String,
-      trim: true,
-      maxlength: 200,
-    },
-    socials: {
-      type: Map,
-      of: String,
-      default: {},
-    },
-    logo: {
-      type: String,
+      required: false,
       trim: true,
     },
-    logos: [{
+    businessType: {
       type: String,
+      required: false,
       trim: true,
-    }],
-    goals: [{
+    },
+    businessDescription: {
       type: String,
+      required: false,
       trim: true,
-      maxlength: 200,
-    }],
+    },
+    targetAudience: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    budget: {
+      type: Number,
+      required: false,
+    },
+    goals: {
+      type: [String],
+      required: false,
+      default: [],
+    },
+    experience: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    website: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    location: {
+      type: String,
+      required: false,
+      trim: true,
+    },
   },
   {
     timestamps: true,
     versionKey: false,
   }
 );
+
+organizationSchema.index({ userId: 1 });
 
 organizationSchema.set('toJSON', {
   transform: function(doc, ret) {
