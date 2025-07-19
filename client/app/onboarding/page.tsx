@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -40,9 +40,12 @@ export default function OnboardingPage() {
     experience: "",
     website: "",
     location: "",
+    presenceType: "", // online, offline, both
+    numberOfStores: "",
+    regions: "",
   })
 
-  const totalSteps = 6
+  const totalSteps = 9
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -52,7 +55,16 @@ export default function OnboardingPage() {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+      // If on regions step (7) and numberOfStores step (6) is hidden, skip back to presenceType (5)
+      if (
+        currentStep === 7 &&
+        formData.presenceType !== "offline" &&
+        formData.presenceType !== "both"
+      ) {
+        setCurrentStep(5);
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
     }
   }
 
@@ -99,11 +111,32 @@ export default function OnboardingPage() {
       case 4:
         return formData.goals.length > 0
       case 5:
+        return formData.presenceType !== ""
+      case 6:
+        // Only require numberOfStores if offline or both
+        return formData.presenceType === "offline" || formData.presenceType === "both"
+          ? formData.numberOfStores.trim() !== "" && !isNaN(Number(formData.numberOfStores))
+          : true
+      case 7:
+        return formData.regions.trim() !== ""
+      case 8:
         return formData.targetAudience.trim() !== ""
       default:
         return true
     }
   }
+
+  // Auto-advance step 6 if not offline/both
+  useEffect(() => {
+    if (
+      currentStep === 6 &&
+      formData.presenceType !== "offline" &&
+      formData.presenceType !== "both"
+    ) {
+      setCurrentStep(7);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, formData.presenceType]);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -302,6 +335,84 @@ export default function OnboardingPage() {
         )
 
       case 5:
+        return (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Briefcase className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Where does your business operate?</h2>
+              <p className="text-gray-600 text-lg">Let us know if you have an online, offline, or both types of presence.</p>
+            </div>
+            <div className="flex justify-center gap-4">
+              {[
+                { value: "online", label: "Online Only" },
+                { value: "offline", label: "Offline Only" },
+                { value: "both", label: "Both" },
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  variant={formData.presenceType === option.value ? "default" : "outline"}
+                  className={`rounded-full px-8 py-4 text-lg font-semibold transition-all duration-300 ${formData.presenceType === option.value ? "ring-2 ring-blue-500" : ""}`}
+                  onClick={() => setFormData({ ...formData, presenceType: option.value })}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )
+      case 6:
+        // Only show if offline or both
+        if (formData.presenceType === "offline" || formData.presenceType === "both") {
+          return (
+            <div className="space-y-6 animate-fade-in-up">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Building className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">How many physical stores do you have?</h2>
+                <p className="text-gray-600 text-lg">Enter the number of offline locations or stores.</p>
+              </div>
+              <div className="max-w-md mx-auto">
+                <Input
+                  id="numberOfStores"
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 3"
+                  value={formData.numberOfStores}
+                  onChange={(e) => setFormData({ ...formData, numberOfStores: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          )
+        } else {
+          // If not offline/both, show nothing (auto-advance handled by useEffect)
+          return null;
+        }
+      case 7:
+        return (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Which regions or locations do you serve?</h2>
+              <p className="text-gray-600 text-lg">List the cities, states, or countries where your business is present or delivers.</p>
+            </div>
+            <div className="max-w-2xl mx-auto">
+              <Textarea
+                id="regions"
+                placeholder="e.g. Mumbai, Delhi, Bangalore, or All India, or International..."
+                value={formData.regions}
+                onChange={(e) => setFormData({ ...formData, regions: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px]"
+              />
+            </div>
+          </div>
+        )
+      case 8:
         return (
           <div className="space-y-6 animate-fade-in-up">
             <div className="text-center mb-8">
