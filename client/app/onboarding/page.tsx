@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -28,7 +29,9 @@ import { ApiEndpoints } from "@/api/endpoints/apiConfig"
 import { toast } from "sonner"
 
 
+
 export default function OnboardingPage() {
+  const [showScanModal, setShowScanModal] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState({
     businessName: "",
@@ -44,8 +47,45 @@ export default function OnboardingPage() {
     numberOfStores: "",
     regions: "",
   })
-
+  const [logoUrl, setLogoUrl] = useState<string>("")
+  const [logoLoading, setLogoLoading] = useState(false)
+  const [logoError, setLogoError] = useState("")
+  const [customLogo, setCustomLogo] = useState<string>("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const totalSteps = 9
+
+  // Fetch logo when website changes and is a valid URL
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    const fetchLogo = async () => {
+      setLogoError("");
+      setLogoUrl("");
+      if (!formData.website || formData.website.length < 4) return;
+      let url = formData.website.trim();
+      if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+      setShowScanModal(true);
+      setLogoLoading(true);
+      let logoData = {};
+      try {
+        const res = await axiosClient.get(
+          `${ApiEndpoints.highQualityLogo}?url=${encodeURIComponent(url)}`
+        );
+        logoData = res.data.data || {};
+      } catch (e) {
+        setLogoError("Could not fetch logo");
+      }
+      // Always show scanning for at least 2.2s
+      timeout = setTimeout(() => {
+        setShowScanModal(false);
+        setLogoLoading(false);
+        const { ogImage, appleTouch, icon } = logoData as any;
+        setLogoUrl(ogImage || appleTouch || icon || "");
+      }, 2200);
+    };
+    if (formData.website) fetchLogo();
+    return () => { if (timeout) clearTimeout(timeout); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.website]);
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -175,9 +215,66 @@ export default function OnboardingPage() {
                   type="url"
                   placeholder="https://yourwebsite.com"
                   value={formData.website}
-                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, website: e.target.value });
+                    setCustomLogo("");
+                  }}
                   className="w-full px-4 py-3 rounded-xl border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                {/* Logo preview and animation */}
+                {formData.website && (
+                  <>
+                    {/* Scanning Modal */}
+                    {showScanModal && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                        <div className="bg-white rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center gap-4 min-w-[320px] animate-fade-in-up">
+                          <span className="relative w-20 h-20 flex items-center justify-center mb-2">
+                            <span className="absolute w-20 h-20 rounded-full border-4 border-blue-400 border-dashed animate-spin-scan"></span>
+                            <span className="absolute w-14 h-14 rounded-full bg-gradient-to-r from-blue-300 to-indigo-300 flex items-center justify-center shadow-lg">
+                              <svg className="h-10 w-10 text-blue-600 animate-pulse" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                            </span>
+                          </span>
+                          <span className="block text-blue-700 font-bold text-lg">Scanning your website...</span>
+                          <span className="block text-xs text-blue-400 mt-1">Looking for the best logo on your page</span>
+                        </div>
+                      </div>
+                    )}
+                    {/* Logo preview and upload */}
+                    <div className="mt-4 flex items-center gap-4">
+                      {customLogo ? (
+                        <img src={customLogo} alt="Custom Logo" className="w-12 h-12 rounded-lg border object-contain" />
+                      ) : logoUrl ? (
+                        <img src={logoUrl} alt="Website Logo" className="w-12 h-12 rounded-lg border object-contain" />
+                      ) : logoError ? (
+                        <span className="text-red-500 text-sm">{logoError}</span>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex items-center gap-2 px-3 py-2 text-sm"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4" /> Upload Logo
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = ev => {
+                              setCustomLogo(ev.target?.result as string || "");
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               <div>
@@ -556,6 +653,13 @@ export default function OnboardingPage() {
       </div>
 
       <style jsx>{`
+        @keyframes spin-scan {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .animate-spin-scan {
+          animation: spin-scan 1.2s linear infinite;
+        }
         @keyframes fade-in-up {
           from {
             opacity: 0;

@@ -7,6 +7,8 @@ import {
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { AuthService } from '../services/auth.service';
 import { IOrganization } from '../../common/models/Organization';
+import axios from 'axios';
+import { load } from 'cheerio';
 
 export class AuthController {
     private authService: AuthService;
@@ -264,8 +266,8 @@ export class AuthController {
             }
 
             // Expect onboarding data in request body
-            const data : IOrganization = req.body;
-            
+            const data: IOrganization = req.body;
+
             console.log('Onboarding data received:', data);
             // Save onboarding data in DB (implement this in your AuthService)
             const onboarded = await this.authService.onBoardUser(req.user.userId, data);
@@ -373,6 +375,53 @@ export class AuthController {
             res.status(500).json({
                 error: 'Server error',
                 message: error instanceof Error ? error.message : 'Unknown error occurred'
+            });
+        }
+    }
+
+    async getHighQualityLogo(req: Request, res: Response): Promise<void> {
+        try {
+            let { url } = req.query;
+
+            if (!url || typeof url !== 'string') {
+                res.status(400).json({
+                    error: 'Validation failed',
+                    message: 'URL is required'
+                });
+                return;
+            }
+
+            // Prepend protocol if missing
+            if (!/^https?:\/\//i.test(url)) {
+                url = `https://${url}`;
+            }
+
+            const response = await axios.get(url, { timeout: 5000 });
+            const html = response.data;
+            const $ = load(html);
+
+            const ogImage = $('meta[property="og:image"]').attr("content");
+            const appleTouch = $('link[rel="apple-touch-icon"]').attr("href");
+            const icon = $('link[rel="icon"]').attr("href");
+
+            const base = new URL(url);
+
+            const resolve = (src: string | undefined) =>
+                src && !src.startsWith("http") ? `${base.origin}${src}` : src;
+
+            res.status(200).json({
+                message: 'High quality logo retrieved successfully',
+                data: {
+                    ogImage: resolve(ogImage),
+                    appleTouch: resolve(appleTouch),
+                    icon: resolve(icon)
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching high quality logo:', error);
+            res.status(500).json({
+                error: 'Server error',
+                message: 'Failed to fetch high quality logo'
             });
         }
     }
