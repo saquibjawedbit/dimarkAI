@@ -17,17 +17,17 @@ export default function HeroSection({ isVisible }: HeroSectionProps) {
             >
               <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-full px-4 py-2 border-0 animate-fade-in-up">
                 <Sparkles className="w-4 h-4 mr-2 animate-pulse" />
-                AI-Powered Marketing Revolution
+                AI-Powered Digital Marketing Revolution
               </Badge>
               <h1 className="text-5xl md:text-7xl font-bold leading-tight text-gray-900">
                 Let AI Run Your{" "}
                 <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient-text">
-                  Facebook Ads
+                  Digital Ads
                 </span>{" "}
                 — Smarter, Faster, Better.
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl animate-fade-in-up delay-200">
-                DiMark AI automates ad generation, publishing, and optimization using cutting-edge AI agents — built specifically for small businesses.
+                DiMark AI automates ad creation, publishing, and optimization across all major platforms using cutting-edge AI agents — built specifically for small businesses.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up delay-300">
                 <Button
