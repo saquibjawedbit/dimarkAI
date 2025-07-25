@@ -3,9 +3,9 @@ import './globals.css'
 import { AuthProvider } from "../context/AuthContext"
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'DimarkAI',
+  description: 'DimarkAI: Your AI-Powered Marketing Assistant',
+  generator: 'DimarkAI',
 }
 
 export default function RootLayout({
