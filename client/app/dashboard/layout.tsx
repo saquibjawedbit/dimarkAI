@@ -211,7 +211,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </SidebarFooter>
                     <SidebarRail />
                 </Sidebar>
-                <SidebarInset className="flex-1">{children}</SidebarInset>
+                <SidebarInset className="flex-1" >{children}</SidebarInset>
             </div>
         </SidebarProvider>
     );

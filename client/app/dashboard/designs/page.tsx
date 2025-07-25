@@ -43,19 +43,18 @@ export default function BannerDesignPage() {
     const [currentStep, setCurrentStep] = useState(1)
     const [isGenerating, setIsGenerating] = useState(false)
     const [generatedBanners, setGeneratedBanners] = useState<string[]>([
-        "https://picsum.photos/200/300"
     ])
     const [selectedBanner, setSelectedBanner] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [formData, setFormData] = useState({
         productImage: null as File | null,
+        businessType: "",
         productDescription: "",
-        headline: "",
-        offer: "",
-        cta: "",
-        targetSize: "1080x1080",
-        style: "modern",
+        targetAudience: "",
+        additionalInformation: "",
+        useCase: "",
+        festivalOrSeason: "",
     })
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,152 +76,8 @@ export default function BannerDesignPage() {
         setCurrentStep(3)
     }
 
-    const BannerPreview = ({ banner, isSelected = false, onClick }: any) => (
-        <Card
-            className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${isSelected ? "ring-2 ring-blue-500 shadow-lg" : ""
-                }`}
-            onClick={onClick}
-        >
-            <CardContent className="p-0 relative overflow-hidden rounded-lg">
-                <div className={`${banner.colors[0]} p-6 h-64 flex items-center justify-between relative`}>
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-4 right-4 w-20 h-20 border-2 border-white/20 rounded-full"></div>
-                        <div className="absolute bottom-4 left-4 w-12 h-12 border border-white/20 rounded"></div>
-                    </div>
-
-                    {/* Content Layout based on template style */}
-                    {banner.layout === "left-aligned" && (
-                        <div className="flex items-center space-x-6 z-10">
-                            {banner.productImage && (
-                                <div className="w-24 h-24 bg-white/20 rounded-lg flex items-center justify-center overflow-hidden">
-                                    <img
-                                        src={banner.productImage || "/placeholder.svg"}
-                                        alt="Product"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            )}
-                            <div className="flex-1">
-                                <h3 className={`text-xl font-bold ${banner.colors[1]} mb-2`}>{banner.headline}</h3>
-                                {banner.offer && <p className={`text-sm ${banner.colors[1]} opacity-90 mb-3`}>{banner.offer}</p>}
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                                >
-                                    {banner.cta}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {banner.layout === "center-aligned" && (
-                        <div className="text-center w-full z-10">
-                            {banner.productImage && (
-                                <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 overflow-hidden">
-                                    <img
-                                        src={banner.productImage || "/placeholder.svg"}
-                                        alt="Product"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            )}
-                            <h3 className={`text-2xl font-bold ${banner.colors[1]} mb-2`}>{banner.headline}</h3>
-                            {banner.offer && <p className={`text-sm ${banner.colors[1]} opacity-90 mb-4`}>{banner.offer}</p>}
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                            >
-                                {banner.cta}
-                            </Button>
-                        </div>
-                    )}
-
-                    {banner.layout === "right-aligned" && (
-                        <div className="flex items-center space-x-6 z-10 w-full justify-end">
-                            <div className="text-right">
-                                <h3 className={`text-xl font-bold ${banner.colors[1]} mb-2`}>{banner.headline}</h3>
-                                {banner.offer && <p className={`text-sm ${banner.colors[1]} opacity-90 mb-3`}>{banner.offer}</p>}
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                                >
-                                    {banner.cta}
-                                </Button>
-                            </div>
-                            {banner.productImage && (
-                                <div className="w-24 h-24 bg-white/20 rounded-lg flex items-center justify-center overflow-hidden">
-                                    <img
-                                        src={banner.productImage || "/placeholder.svg"}
-                                        alt="Product"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {banner.layout === "split" && (
-                        <div className="flex items-center justify-between w-full z-10">
-                            <div className="flex-1">
-                                <h3 className={`text-xl font-bold ${banner.colors[1]} mb-2`}>{banner.headline}</h3>
-                                {banner.offer && <p className={`text-sm ${banner.colors[1]} opacity-90 mb-3`}>{banner.offer}</p>}
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                                >
-                                    {banner.cta}
-                                </Button>
-                            </div>
-                            {banner.productImage && (
-                                <div className="w-32 h-32 bg-white/20 rounded-lg flex items-center justify-center overflow-hidden ml-6">
-                                    <img
-                                        src={banner.productImage || "/placeholder.svg"}
-                                        alt="Product"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Default layout for other types */}
-                    {!["left-aligned", "center-aligned", "right-aligned", "split"].includes(banner.layout) && (
-                        <div className="text-center w-full z-10">
-                            <h3 className={`text-xl font-bold ${banner.colors[1]} mb-2`}>{banner.headline}</h3>
-                            {banner.offer && <p className={`text-sm ${banner.colors[1]} opacity-90 mb-3`}>{banner.offer}</p>}
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                            >
-                                {banner.cta}
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                <div className="p-3 bg-white border-t">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h4 className="font-medium text-gray-900 text-sm">{banner.name}</h4>
-                            <p className="text-xs text-gray-500">{banner.description}</p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                            {banner.size}
-                        </Badge>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    )
-
     return (
-        <div className="min-h-screen relative bg-gradient-to-br from-indigo-100 via-blue-200 to-purple-100 animate-gradient-move">
+        <div className="min-h-screen relative bg-gradient-to-br from-indigo-100 via-blue-200 to-purple-100 animate-gradient-move overflow-x-hidden flex flex-col items-center px-16">
             {/* Floating Help Button */}
             <button
                 className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-2xl rounded-full p-4 flex items-center gap-2 hover:scale-110 transition-transform duration-300"
@@ -230,7 +85,7 @@ export default function BannerDesignPage() {
             >
                 <Sparkles className="w-6 h-6 animate-spin-slow" />
             </button>
-            <div className="container mx-auto py-12">
+            <div className="container mx-auto py-12 flex flex-col items-center justify-center">
                 {/* Progress Steps */}
                 <div className="flex items-center justify-center mb-10">
                     <div className="flex items-center space-x-6">
@@ -347,69 +202,58 @@ export default function BannerDesignPage() {
 
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Headline *</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Business Type *</label>
                                         <Input
-                                            placeholder="e.g., Summer Sale Now On!"
-                                            value={formData.headline}
-                                            onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
+                                            placeholder="e.g., Retail, Restaurant, Tech Startup"
+                                            value={formData.businessType}
+                                            onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
                                             className="text-lg"
                                         />
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Call-to-Action *</label>
-                                        <Select value={formData.cta} onValueChange={(value) => setFormData({ ...formData, cta: value })}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select CTA" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Shop Now">Shop Now</SelectItem>
-                                                <SelectItem value="Buy Now">Buy Now</SelectItem>
-                                                <SelectItem value="Learn More">Learn More</SelectItem>
-                                                <SelectItem value="Get Started">Get Started</SelectItem>
-                                                <SelectItem value="Sign Up">Sign Up</SelectItem>
-                                                <SelectItem value="Download">Download</SelectItem>
-                                                <SelectItem value="Contact Us">Contact Us</SelectItem>
-                                                <SelectItem value="Book Now">Book Now</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience *</label>
+                                        <Input
+                                            placeholder="e.g., Young Adults, Parents, Professionals"
+                                            value={formData.targetAudience}
+                                            onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                                            className="text-lg"
+                                        />
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Promotional Offer (Optional)</label>
-                                    <Input
-                                        placeholder="e.g., Up to 50% Off | Free Shipping | Limited Time Only"
-                                        value={formData.offer}
-                                        onChange={(e) => setFormData({ ...formData, offer: e.target.value })}
-                                    />
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Target Size</label>
-                                        <Select
-                                            value={formData.targetSize}
-                                            onValueChange={(value) => setFormData({ ...formData, targetSize: value })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {bannerSizes.map((size) => (
-                                                    <SelectItem key={size.dimensions} value={size.dimensions}>
-                                                        {size.name} ({size.dimensions})
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Use Case (Optional)</label>
+                                        <Input
+                                            placeholder="e.g., Social Media Ad, Website Banner, Email Campaign"
+                                            value={formData.useCase}
+                                            onChange={(e) => setFormData({ ...formData, useCase: e.target.value })}
+                                        />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Festival or Season (Optional)</label>
+                                        <Input
+                                            placeholder="e.g., Diwali, Christmas, Summer, Winter"
+                                            value={formData.festivalOrSeason}
+                                            onChange={(e) => setFormData({ ...formData, festivalOrSeason: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Additional Information (Optional)</label>
+                                    <Textarea
+                                        placeholder="Any extra details, instructions, or preferences for the design..."
+                                        value={formData.additionalInformation}
+                                        onChange={(e) => setFormData({ ...formData, additionalInformation: e.target.value })}
+                                        className="min-h-[80px]"
+                                    />
                                 </div>
 
                                 <div className="flex justify-center pt-6">
                                     <Button
                                         onClick={() => setCurrentStep(2)}
-                                        disabled={!formData.headline || !formData.cta}
+                                        disabled={!formData.businessType || !formData.targetAudience || !formData.productDescription}
                                         size="lg"
                                         className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                     >
@@ -478,7 +322,7 @@ export default function BannerDesignPage() {
 
                 {/* Step 3: Select & Download */}
                 {currentStep === 3 && (
-                    <div className="space-y-10">
+                    <div className="space-y-10 w-full">
                         <div className="text-center">
                             <h2 className="text-3xl font-extrabold text-indigo-900 mb-2 drop-shadow-lg">Your Banner Designs Are Ready!</h2>
                             <p className="text-gray-600 text-lg">
@@ -486,62 +330,113 @@ export default function BannerDesignPage() {
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {generatedBanners.map((banner) => (
-                                <div className="relative group">
-                                    <span className="absolute -top-3 -right-3 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">Click to select</span>
-                                    <img src={banner} />
-                                </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 w-full">
+                            {generatedBanners.map((banner, idx) => (
+                                <Card
+                                    key={idx}
+                                    className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${selectedBanner === banner ? "ring-2 ring-blue-500 shadow-lg" : ""}`}
+                                    onClick={() => setSelectedBanner(banner)}
+                                >
+                                    <CardContent className="p-0 relative overflow-hidden rounded-lg">
+                                        <div className="relative h-56 flex items-center justify-center bg-white rounded-lg">
+                                            <img
+                                                src={banner}
+                                                alt={`Generated Banner ${idx + 1}`}
+                                                className="object-contain w-full h-full rounded-lg"
+                                            />
+                                            {selectedBanner === banner && (
+                                                <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg">Selected</span>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             ))}
                         </div>
 
                         {selectedBanner && (
-                            <Card className="shadow-2xl border-0 animate-pop-in">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center justify-between text-xl text-indigo-900">
-                                        {/* <span>Selected Design: <span className="font-bold text-blue-600">{selectedBanner.name}</span></span> */}
-                                        <div className="flex space-x-2">
-                                            <Button variant="outline" size="sm" className="hover:bg-indigo-50">
-                                                <Eye className="w-4 h-4 mr-2" />
-                                                Preview
-                                            </Button>
-                                            <Button variant="outline" size="sm" className="hover:bg-indigo-50">
-                                                <Copy className="w-4 h-4 mr-2" />
-                                                Duplicate
-                                            </Button>
-                                            <Button size="sm" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                                                <Download className="w-4 h-4 mr-2" />
-                                                Download
-                                            </Button>
-                                        </div>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid md:grid-cols-2 gap-8">
-                                        <div>
-                                            <h4 className="font-semibold text-indigo-900 mb-4">Download Options</h4>
-                                            <div className="space-y-2">
-                                                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
-                                                    <Download className="w-4 h-4 mr-2" />
-                                                    High Resolution PNG
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                                <Card className="shadow-2xl border-0 animate-pop-in relative max-w-2xl w-full">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center justify-between text-xl text-indigo-900">
+                                            <div className="flex items-center">
+                                                <button
+                                                    className="mr-4 text-gray-500 hover:text-indigo-600 text-2xl font-bold bg-white bg-opacity-80 rounded-full shadow-lg p-1"
+                                                    onClick={() => setSelectedBanner(null)}
+                                                    aria-label="Close"
+                                                >
+                                                    &times;
+                                                </button>
+                                                <span>Selected Design</span>
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="hover:bg-indigo-50"
+                                                    onClick={() => {
+                                                        if (selectedBanner) {
+                                                            window.open(selectedBanner, '_blank', 'noopener,noreferrer');
+                                                        }
+                                                    }}
+                                                >
+                                                    <Eye className="w-4 h-4 mr-2" />
+                                                    Preview
                                                 </Button>
-                                                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
-                                                    <Download className="w-4 h-4 mr-2" />
-                                                    Web Optimized JPG
+                                                <Button variant="outline" size="sm" className="hover:bg-indigo-50">
+                                                    <Copy className="w-4 h-4 mr-2" />
+                                                    Duplicate
                                                 </Button>
-                                                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                <Button size="sm" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                                                     <Download className="w-4 h-4 mr-2" />
-                                                    Vector SVG
-                                                </Button>
-                                                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
-                                                    <Share2 className="w-4 h-4 mr-2" />
-                                                    Share Link
+                                                    Download
                                                 </Button>
                                             </div>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid md:grid-cols-2 gap-8">
+                                            <div>
+                                                <h4 className="font-semibold text-indigo-900 mb-4">Design Details</h4>
+                                                <div className="space-y-3 text-base">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Format:</span>
+                                                        <span className="font-bold text-blue-600">PNG, JPG, SVG</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-indigo-900 mb-4">Preview</h4>
+                                                <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                                                    <img src={selectedBanner} alt="Selected Banner" className="object-contain w-full h-full" />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        <div className="grid md:grid-cols-2 gap-8 mt-8">
+                                            <div>
+                                                <h4 className="font-semibold text-indigo-900 mb-4">Download Options</h4>
+                                                <div className="space-y-2">
+                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                        <Download className="w-4 h-4 mr-2" />
+                                                        High Resolution PNG
+                                                    </Button>
+                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                        <Download className="w-4 h-4 mr-2" />
+                                                        Web Optimized JPG
+                                                    </Button>
+                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                        <Download className="w-4 h-4 mr-2" />
+                                                        Vector SVG
+                                                    </Button>
+                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                        <Share2 className="w-4 h-4 mr-2" />
+                                                        Share Link
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         )}
 
                         <div className="flex justify-center space-x-6 mt-8">

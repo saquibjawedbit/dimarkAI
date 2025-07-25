@@ -1,12 +1,11 @@
 export interface IPrompt {
-    productImage?: File | null,
+    productImage: File | null,
+    businessType: string,
     productDescription: string,
-    headline?: string,
-    offer?: string,
-    cta?: string,
-    targetSize?: string,
-    brandColors?: string,
-    style?: string,
+    targetAudience: string,
+    additionalInformation?: string,
+    useCase?: string,
+    festivalOrSeason?: string,
 }
 
 export interface IImageData {
