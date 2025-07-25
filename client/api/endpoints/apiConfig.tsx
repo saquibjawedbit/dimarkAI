@@ -5,4 +5,6 @@ export class ApiEndpoints {
     static readonly onboard = '/api/auth/onboard';
     static readonly refresh = '/api/auth/refresh-token';
     static readonly highQualityLogo = '/api/auth/high-quality-logo';
+
+    static readonly generateDesigns = '/api/designs/generate';
 }

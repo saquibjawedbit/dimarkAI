@@ -24,74 +24,9 @@ import {
     Eye,
     ArrowRight,
 } from "lucide-react"
-import Link from "next/link"
+import axiosClient from "@/api/axiosClient"
+import { ApiEndpoints } from "@/api/endpoints/apiConfig"
 
-const bannerTemplates = [
-    {
-        id: 1,
-        name: "Modern Minimal",
-        style: "minimal",
-        layout: "left-aligned",
-        colors: ["bg-gradient-to-r from-blue-500 to-indigo-600", "text-white"],
-        description: "Clean and professional design",
-    },
-    {
-        id: 2,
-        name: "Bold Impact",
-        style: "bold",
-        layout: "center-aligned",
-        colors: ["bg-gradient-to-r from-red-500 to-pink-600", "text-white"],
-        description: "High-contrast attention-grabbing design",
-    },
-    {
-        id: 3,
-        name: "Elegant Classic",
-        style: "elegant",
-        layout: "right-aligned",
-        colors: ["bg-gradient-to-r from-purple-500 to-indigo-600", "text-white"],
-        description: "Sophisticated and timeless",
-    },
-    {
-        id: 4,
-        name: "Vibrant Energy",
-        style: "vibrant",
-        layout: "split",
-        colors: ["bg-gradient-to-r from-orange-500 to-yellow-500", "text-gray-900"],
-        description: "Energetic and eye-catching",
-    },
-    {
-        id: 5,
-        name: "Professional Corporate",
-        style: "corporate",
-        layout: "top-bottom",
-        colors: ["bg-gradient-to-r from-gray-700 to-gray-900", "text-white"],
-        description: "Business-focused and trustworthy",
-    },
-    {
-        id: 6,
-        name: "Creative Artistic",
-        style: "artistic",
-        layout: "overlay",
-        colors: ["bg-gradient-to-r from-teal-500 to-cyan-600", "text-white"],
-        description: "Creative and unique approach",
-    },
-    {
-        id: 7,
-        name: "Luxury Premium",
-        style: "luxury",
-        layout: "centered",
-        colors: ["bg-gradient-to-r from-amber-600 to-yellow-600", "text-gray-900"],
-        description: "Premium and exclusive feel",
-    },
-    {
-        id: 8,
-        name: "Fresh Modern",
-        style: "fresh",
-        layout: "diagonal",
-        colors: ["bg-gradient-to-r from-green-500 to-emerald-600", "text-white"],
-        description: "Fresh and contemporary design",
-    },
-]
 
 const bannerSizes = [
     { name: "Social Media Square", dimensions: "1080x1080", ratio: "1:1" },
@@ -107,8 +42,10 @@ const bannerSizes = [
 export default function BannerDesignPage() {
     const [currentStep, setCurrentStep] = useState(1)
     const [isGenerating, setIsGenerating] = useState(false)
-    const [generatedBanners, setGeneratedBanners] = useState<any[]>([])
-    const [selectedBanner, setSelectedBanner] = useState<any>(null)
+    const [generatedBanners, setGeneratedBanners] = useState<string[]>([
+        "https://picsum.photos/200/300"
+    ])
+    const [selectedBanner, setSelectedBanner] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [formData, setFormData] = useState({
@@ -118,7 +55,6 @@ export default function BannerDesignPage() {
         offer: "",
         cta: "",
         targetSize: "1080x1080",
-        brandColors: "#3B82F6",
         style: "modern",
     })
 
@@ -132,21 +68,11 @@ export default function BannerDesignPage() {
     const generateBanners = async () => {
         setIsGenerating(true)
 
-        // Simulate AI banner generation
-        await new Promise((resolve) => setTimeout(resolve, 3000))
+        const response = await axiosClient.post(
+            ApiEndpoints.generateDesigns, formData
+        );
 
-        const generated = bannerTemplates.map((template, index) => ({
-            ...template,
-            id: index + 1,
-            imageUrl: `/placeholder.svg?height=400&width=600&text=Banner+${index + 1}`,
-            headline: formData.headline,
-            offer: formData.offer,
-            cta: formData.cta,
-            productImage: formData.productImage ? URL.createObjectURL(formData.productImage) : null,
-            size: formData.targetSize,
-        }))
-
-        setGeneratedBanners(generated)
+        setGeneratedBanners(response.data.data);
         setIsGenerating(false)
         setCurrentStep(3)
     }
@@ -478,24 +404,6 @@ export default function BannerDesignPage() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Brand Color</label>
-                                        <div className="flex items-center space-x-3">
-                                            <input
-                                                type="color"
-                                                value={formData.brandColors}
-                                                onChange={(e) => setFormData({ ...formData, brandColors: e.target.value })}
-                                                className="w-12 h-10 rounded border border-gray-300"
-                                            />
-                                            <Input
-                                                value={formData.brandColors}
-                                                onChange={(e) => setFormData({ ...formData, brandColors: e.target.value })}
-                                                placeholder="#3B82F6"
-                                                className="flex-1"
-                                            />
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <div className="flex justify-center pt-6">
@@ -582,12 +490,7 @@ export default function BannerDesignPage() {
                             {generatedBanners.map((banner) => (
                                 <div className="relative group">
                                     <span className="absolute -top-3 -right-3 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">Click to select</span>
-                                    <BannerPreview
-                                        key={banner.id}
-                                        banner={banner}
-                                        isSelected={selectedBanner?.id === banner.id}
-                                        onClick={() => setSelectedBanner(banner)}
-                                    />
+                                    <img src={banner} />
                                 </div>
                             ))}
                         </div>
@@ -596,7 +499,7 @@ export default function BannerDesignPage() {
                             <Card className="shadow-2xl border-0 animate-pop-in">
                                 <CardHeader>
                                     <CardTitle className="flex items-center justify-between text-xl text-indigo-900">
-                                        <span>Selected Design: <span className="font-bold text-blue-600">{selectedBanner.name}</span></span>
+                                        {/* <span>Selected Design: <span className="font-bold text-blue-600">{selectedBanner.name}</span></span> */}
                                         <div className="flex space-x-2">
                                             <Button variant="outline" size="sm" className="hover:bg-indigo-50">
                                                 <Eye className="w-4 h-4 mr-2" />
@@ -615,28 +518,6 @@ export default function BannerDesignPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid md:grid-cols-2 gap-8">
-                                        <div>
-                                            <h4 className="font-semibold text-indigo-900 mb-4">Design Details</h4>
-                                            <div className="space-y-3 text-base">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Style:</span>
-                                                    <span className="font-bold text-blue-600">{selectedBanner.name}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Layout:</span>
-                                                    <span className="font-bold text-blue-600 capitalize">{selectedBanner.layout.replace("-", " ")}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Size:</span>
-                                                    <span className="font-bold text-blue-600">{selectedBanner.size}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Format:</span>
-                                                    <span className="font-bold text-blue-600">PNG, JPG, SVG</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <div>
                                             <h4 className="font-semibold text-indigo-900 mb-4">Download Options</h4>
                                             <div className="space-y-2">
