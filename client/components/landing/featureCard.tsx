@@ -1,4 +1,4 @@
-import { Feature } from "@/app/sections/types"
+import { Feature } from "@/app/_sections/types"
 import { Card, CardContent } from "../ui/card"
 
 export function FeatureCard({ feature }: { feature: Feature }) {
