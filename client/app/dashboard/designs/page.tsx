@@ -16,7 +16,6 @@ import {
     Share2,
     Copy,
     Palette,
-    Zap,
     ArrowLeft,
     RefreshCw,
     Eye,
@@ -75,13 +74,13 @@ export default function BannerDesignPage() {
     }
 
     return (
-        <div className="min-h-screen relative bg-gradient-to-br from-indigo-100 via-blue-200 to-purple-100 animate-gradient-move overflow-x-hidden flex flex-col items-center px-16">
+        <div className="min-h-screen relative bg-white overflow-x-hidden flex flex-col items-center px-4">
             {/* Floating Help Button */}
             <button
-                className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-2xl rounded-full p-4 flex items-center gap-2 hover:scale-110 transition-transform duration-300"
+                className="fixed bottom-8 right-8 z-50 bg-black text-white shadow-2xl rounded-full p-4 flex items-center gap-2 hover:scale-110 transition-transform duration-300"
                 title="Get Help or Tips"
             >
-                <Sparkles className="w-6 h-6 animate-spin-slow" />
+                <Sparkles className="w-6 h-6" />
             </button>
             <div className="container mx-auto py-12 flex flex-col items-center justify-center">
                 {/* Progress Steps */}
@@ -90,7 +89,7 @@ export default function BannerDesignPage() {
                         {[1, 2, 3].map((step) => (
                             <div key={step} className="flex items-center">
                                 <div
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-xl border-2 transition-all duration-500 ${currentStep >= step ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-400 animate-step-pop" : "bg-gray-100 text-gray-400 border-gray-300"}`}
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-xl border-2 transition-all duration-500 ${currentStep >= step ? "bg-black text-white border-black" : "bg-white text-black border-gray-300"}`}
                                 >
                                     {step === 1 && <Palette className="w-5 h-5 mr-1" />}
                                     {step === 2 && <Bot className="w-5 h-5 mr-1" />}
@@ -99,7 +98,7 @@ export default function BannerDesignPage() {
                                 </div>
                                 {step < 3 && (
                                     <div
-                                        className={`w-20 h-1 mx-3 rounded transition-all duration-500 ${currentStep > step ? "bg-gradient-to-r from-blue-500 to-indigo-600" : "bg-gray-200"}`}
+                                        className={`w-20 h-1 mx-3 rounded transition-all duration-500 ${currentStep > step ? "bg-black" : "bg-gray-200"}`}
                                     ></div>
                                 )}
                             </div>
@@ -110,13 +109,13 @@ export default function BannerDesignPage() {
                 {/* Step Labels */}
                 <div className="flex justify-center mb-14">
                     <div className="flex space-x-24 text-base font-semibold">
-                        <span className={currentStep >= 1 ? "text-indigo-600 drop-shadow-lg" : "text-gray-400"}>
+                        <span className={currentStep >= 1 ? "text-black" : "text-gray-400"}>
                             <Palette className="inline w-4 h-4 mr-1" /> Input Content
                         </span>
-                        <span className={currentStep >= 2 ? "text-indigo-600 drop-shadow-lg" : "text-gray-400"}>
+                        <span className={currentStep >= 2 ? "text-black" : "text-gray-400"}>
                             <Bot className="inline w-4 h-4 mr-1" /> Generate Designs
                         </span>
-                        <span className={currentStep >= 3 ? "text-indigo-600 drop-shadow-lg" : "text-gray-400"}>
+                        <span className={currentStep >= 3 ? "text-black" : "text-gray-400"}>
                             <Download className="inline w-4 h-4 mr-1" /> Select & Download
                         </span>
                     </div>
@@ -125,13 +124,13 @@ export default function BannerDesignPage() {
                 {/* Step 1: Input Content */}
                 {currentStep === 1 && (
                     <div className="max-w-4xl mx-auto">
-                        <Card className="shadow-xl border-0">
+                        <Card className="shadow-xl border border-black">
                             <CardHeader className="text-center pb-6">
-                                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center justify-center">
-                                    <Palette className="w-6 h-6 mr-2 text-blue-500" />
+                                <CardTitle className="text-2xl font-bold text-black flex items-center justify-center">
+                                    <Palette className="w-6 h-6 mr-2 text-black" />
                                     Create Your Banner Content
                                 </CardTitle>
-                                <p className="text-gray-600 mt-2">
+                                <p className="text-black mt-2">
                                     Provide your product details and marketing message to generate unique banner designs
                                 </p>
                             </CardHeader>
@@ -143,7 +142,7 @@ export default function BannerDesignPage() {
                                     </TabsList>
 
                                     <TabsContent value="upload" className="space-y-4">
-                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors duration-300">
+                                        <div className="border-2 border-dashed border-black rounded-lg p-8 text-center hover:border-black transition-colors duration-300">
                                             <input
                                                 type="file"
                                                 ref={fileInputRef}
@@ -153,7 +152,7 @@ export default function BannerDesignPage() {
                                             />
                                             {formData.productImage ? (
                                                 <div className="space-y-4">
-                                                    <div className="w-32 h-32 mx-auto bg-gray-100 rounded-lg overflow-hidden">
+                                                    <div className="w-32 h-32 mx-auto bg-white rounded-lg overflow-hidden border border-black">
                                                         <img
                                                             src={URL.createObjectURL(formData.productImage) || "/placeholder.svg"}
                                                             alt="Product"
@@ -161,21 +160,21 @@ export default function BannerDesignPage() {
                                                         />
                                                     </div>
                                                     <p className="text-sm text-gray-600">{formData.productImage.name}</p>
-                                                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="mt-2">
+                                                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="mt-2 border-black text-black">
                                                         <RefreshCw className="w-4 h-4 mr-2" />
                                                         Change Image
                                                     </Button>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-4">
-                                                    <Upload className="w-12 h-12 text-gray-400 mx-auto" />
+                                                    <Upload className="w-12 h-12 text-black mx-auto" />
                                                     <div>
-                                                        <p className="text-lg font-medium text-gray-900">Upload your product image</p>
-                                                        <p className="text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                                        <p className="text-lg font-medium text-black">Upload your product image</p>
+                                                        <p className="text-black">PNG, JPG, GIF up to 10MB</p>
                                                     </div>
                                                     <Button
                                                         onClick={() => fileInputRef.current?.click()}
-                                                        className="bg-blue-500 hover:bg-blue-600"
+                                                        className="bg-black hover:bg-gray-900 text-white"
                                                     >
                                                         <Upload className="w-4 h-4 mr-2" />
                                                         Choose File
@@ -260,7 +259,7 @@ export default function BannerDesignPage() {
                                             !(formData.productDescription || formData.productImage)
                                         }
                                         size="lg"
-                                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                        className="bg-black text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                     >
                                         Generate Banners
                                         <ArrowRight className="w-5 h-5 ml-2" />
@@ -274,16 +273,16 @@ export default function BannerDesignPage() {
                 {/* Step 2: Generate Designs */}
                 {currentStep === 2 && (
                     <div className="max-w-2xl mx-auto text-center">
-                        <Card className="shadow-xl border-0">
+                        <Card className="shadow-xl border border-black">
                             <CardContent className="p-12">
                                 <div className="space-y-6">
-                                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto">
                                         <Bot className="w-10 h-10 text-white animate-pulse" />
                                     </div>
 
                                     <div>
-                                        <h2 className="text-2xl font-bold text-gray-900 mb-2">AI is Creating Your Banners</h2>
-                                        <p className="text-gray-600">
+                                        <h2 className="text-2xl font-bold text-black mb-2">AI is Creating Your Banners</h2>
+                                        <p className="text-black">
                                             Our AI is analyzing your content and generating 8 unique banner designs optimized for different
                                             marketing channels.
                                         </p>
@@ -298,7 +297,7 @@ export default function BannerDesignPage() {
                                             </div>
                                         </div>
 
-                                        <p className="text-sm text-gray-500">This usually takes 30-60 seconds...</p>
+                                        <p className="text-sm text-black">This usually takes 30-60 seconds...</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -310,9 +309,9 @@ export default function BannerDesignPage() {
                 {currentStep === 3 && (
                     <div className="space-y-10 w-full">
                         <div className="text-center">
-                            <h2 className="text-3xl font-extrabold text-indigo-900 mb-2 drop-shadow-lg">Your Banner Designs Are Ready!</h2>
-                            <p className="text-gray-600 text-lg">
-                                Choose from <span className="font-bold text-blue-600">8 unique AI-generated designs</span>. Click on any banner to preview and download.
+                            <h2 className="text-3xl font-extrabold text-black mb-2">Your Banner Designs Are Ready!</h2>
+                            <p className="text-black text-lg">
+                                Choose from <span className="font-bold text-black">8 unique AI-generated designs</span>. Click on any banner to preview and download.
                             </p>
                         </div>
 
@@ -320,18 +319,18 @@ export default function BannerDesignPage() {
                             {generatedBanners.map((banner, idx) => (
                                 <Card
                                     key={idx}
-                                    className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${selectedBanner === banner ? "ring-2 ring-blue-500 shadow-lg" : ""}`}
+                                    className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${selectedBanner === banner ? "ring-2 ring-black shadow-lg" : ""}`}
                                     onClick={() => setSelectedBanner(banner)}
                                 >
                                     <CardContent className="p-0 relative overflow-hidden rounded-lg">
-                                        <div className="relative h-56 flex items-center justify-center bg-white rounded-lg">
+                                        <div className="relative h-56 flex items-center justify-center bg-white rounded-lg border border-black">
                                             <img
                                                 src={banner}
                                                 alt={`Generated Banner ${idx + 1}`}
                                                 className="object-contain w-full h-full rounded-lg"
                                             />
                                             {selectedBanner === banner && (
-                                                <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg">Selected</span>
+                                                <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 rounded shadow-lg">Selected</span>
                                             )}
                                         </div>
                                     </CardContent>
@@ -341,12 +340,12 @@ export default function BannerDesignPage() {
 
                         {selectedBanner && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                                <Card className="shadow-2xl border-0 animate-pop-in relative max-w-2xl w-full">
+                                <Card className="shadow-2xl border border-black animate-pop-in relative max-w-2xl w-full bg-white">
                                     <CardHeader>
-                                        <CardTitle className="flex items-center justify-between text-xl text-indigo-900">
+                                        <CardTitle className="flex items-center justify-between text-xl text-black">
                                             <div className="flex items-center">
                                                 <button
-                                                    className="mr-4 text-gray-500 hover:text-indigo-600 text-2xl font-bold bg-white bg-opacity-80 rounded-full shadow-lg p-1"
+                                                    className="mr-4 text-black hover:text-gray-700 text-2xl font-bold bg-white bg-opacity-80 rounded-full shadow-lg p-1"
                                                     onClick={() => setSelectedBanner(null)}
                                                     aria-label="Close"
                                                 >
@@ -358,7 +357,7 @@ export default function BannerDesignPage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="hover:bg-indigo-50"
+                                                    className="hover:bg-gray-100 border-black text-black"
                                                     onClick={() => {
                                                         if (selectedBanner) {
                                                             window.open(selectedBanner, '_blank', 'noopener,noreferrer');
@@ -368,11 +367,11 @@ export default function BannerDesignPage() {
                                                     <Eye className="w-4 h-4 mr-2" />
                                                     Preview
                                                 </Button>
-                                                <Button variant="outline" size="sm" className="hover:bg-indigo-50">
+                                                <Button variant="outline" size="sm" className="hover:bg-gray-100 border-black text-black">
                                                     <Copy className="w-4 h-4 mr-2" />
                                                     Duplicate
                                                 </Button>
-                                                <Button size="sm" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+                                                <Button size="sm" className="bg-black text-white">
                                                     <Download className="w-4 h-4 mr-2" />
                                                     Download
                                                 </Button>
@@ -382,38 +381,38 @@ export default function BannerDesignPage() {
                                     <CardContent>
                                         <div className="grid md:grid-cols-2 gap-8">
                                             <div>
-                                                <h4 className="font-semibold text-indigo-900 mb-4">Design Details</h4>
+                                                <h4 className="font-semibold text-black mb-4">Design Details</h4>
                                                 <div className="space-y-3 text-base">
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Format:</span>
-                                                        <span className="font-bold text-blue-600">PNG, JPG, SVG</span>
+                                                        <span className="text-black">Format:</span>
+                                                        <span className="font-bold text-black">PNG, JPG, SVG</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-indigo-900 mb-4">Preview</h4>
-                                                <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                                                <h4 className="font-semibold text-black mb-4">Preview</h4>
+                                                <div className="w-full h-64 bg-white rounded-lg overflow-hidden flex items-center justify-center border border-black">
                                                     <img src={selectedBanner} alt="Selected Banner" className="object-contain w-full h-full" />
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="grid md:grid-cols-2 gap-8 mt-8">
                                             <div>
-                                                <h4 className="font-semibold text-indigo-900 mb-4">Download Options</h4>
+                                                <h4 className="font-semibold text-black mb-4">Download Options</h4>
                                                 <div className="space-y-2">
-                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                    <Button variant="outline" className="w-full justify-start border-black text-black hover:bg-gray-100">
                                                         <Download className="w-4 h-4 mr-2" />
                                                         High Resolution PNG
                                                     </Button>
-                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                    <Button variant="outline" className="w-full justify-start border-black text-black hover:bg-gray-100">
                                                         <Download className="w-4 h-4 mr-2" />
                                                         Web Optimized JPG
                                                     </Button>
-                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                    <Button variant="outline" className="w-full justify-start border-black text-black hover:bg-gray-100">
                                                         <Download className="w-4 h-4 mr-2" />
                                                         Vector SVG
                                                     </Button>
-                                                    <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+                                                    <Button variant="outline" className="w-full justify-start border-black text-black hover:bg-gray-100">
                                                         <Share2 className="w-4 h-4 mr-2" />
                                                         Share Link
                                                     </Button>
@@ -426,7 +425,7 @@ export default function BannerDesignPage() {
                         )}
 
                         <div className="flex justify-center space-x-6 mt-8">
-                            <Button variant="outline" onClick={() => setCurrentStep(1)} size="lg" className="px-8 py-3 text-lg font-semibold hover:bg-indigo-50">
+                            <Button variant="outline" onClick={() => setCurrentStep(1)} size="lg" className="px-8 py-3 text-lg font-semibold border-black text-black hover:bg-gray-100">
                                 <ArrowLeft className="w-5 h-5 mr-2" />
                                 Create New Banner
                             </Button>
@@ -434,7 +433,7 @@ export default function BannerDesignPage() {
                             <Button
                                 onClick={generateBanners}
                                 size="lg"
-                                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                className="bg-black text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                             >
                                 <RefreshCw className="w-5 h-5 mr-2" />
                                 Generate More Designs
