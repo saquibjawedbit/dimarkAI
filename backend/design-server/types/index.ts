@@ -1,7 +1,7 @@
 export interface IPrompt {
-    productImage: File | null,
+    productImage?: File | null,
     businessType: string,
-    productDescription: string,
+    productDescription?: string,
     targetAudience: string,
     additionalInformation?: string,
     useCase?: string,

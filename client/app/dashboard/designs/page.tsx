@@ -6,10 +6,8 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
     Bot,
     Upload,
@@ -252,8 +250,15 @@ export default function BannerDesignPage() {
 
                                 <div className="flex justify-center pt-6">
                                     <Button
-                                        onClick={() => setCurrentStep(2)}
-                                        disabled={!formData.businessType || !formData.targetAudience || !formData.productDescription}
+                                        onClick={() => {
+                                            setCurrentStep(2)
+                                            generateBanners()
+                                        }}
+                                        disabled={
+                                            !formData.businessType ||
+                                            !formData.targetAudience ||
+                                            !(formData.productDescription || formData.productImage)
+                                        }
                                         size="lg"
                                         className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                     >
@@ -295,25 +300,6 @@ export default function BannerDesignPage() {
 
                                         <p className="text-sm text-gray-500">This usually takes 30-60 seconds...</p>
                                     </div>
-
-                                    <Button
-                                        onClick={generateBanners}
-                                        disabled={isGenerating}
-                                        size="lg"
-                                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                                    >
-                                        {isGenerating ? (
-                                            <>
-                                                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                                                Generating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Zap className="w-5 h-5 mr-2" />
-                                                Start Generation
-                                            </>
-                                        )}
-                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
