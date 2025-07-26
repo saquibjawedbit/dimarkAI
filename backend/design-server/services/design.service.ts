@@ -3,7 +3,6 @@ import { IImageData, IPromptResponse, IPrompt } from "../types";
 
 export class DesignService {
     async generateDesigns(prompt: IPrompt): Promise<string[]> {
-
         const prompts = await DesignUtils.generatePrompts(
             prompt.businessType,
             prompt.productDescription,
@@ -20,7 +19,7 @@ export class DesignService {
         const response = await Promise.all(
             prompts.map(async p => {
                 const imageData: IImageData = {
-                    prompt: prompt.productDescription,
+                    prompt: p,
                     aspectRatio: "1x1",
                     rendering_speed: "QUALITY",
                     magic_prompt: "AUTO",
