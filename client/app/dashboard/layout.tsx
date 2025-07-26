@@ -1,5 +1,5 @@
 'use client'
-import { BarChart3, FileText, Megaphone, Target, Palette, Settings, CreditCard } from "lucide-react"
+import { BarChart3, FileText, Megaphone, Target, Palette, Settings, CreditCard, Pen } from "lucide-react"
 import { ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -54,6 +54,11 @@ const navigationItems = [
         title: "Create Designs & Banners",
         icon: Palette,
         url: "/dashboard/designs",
+    },
+    {
+        title: "Create Ads Content",
+        icon: Pen,
+        url: "/dashboard/ads-text",
     },
     {
         title: "Settings",

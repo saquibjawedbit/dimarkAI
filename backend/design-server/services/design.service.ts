@@ -5,7 +5,7 @@ export class DesignService {
     async generateDesigns(prompt: IPrompt): Promise<string[]> {
         const prompts = await DesignUtils.generatePrompts(
             prompt.businessType,
-            prompt.productDescription,
+            prompt.productDescription!,
             prompt.targetAudience,
             prompt.additionalInformation || "",
             prompt.useCase || "",
@@ -21,7 +21,7 @@ export class DesignService {
                 const imageData: IImageData = {
                     prompt: p,
                     aspectRatio: "1x1",
-                    rendering_speed: "QUALITY",
+                    rendering_speed: "TURBO",
                     magic_prompt: "AUTO",
                     style_type: "AUTO",
                     style_reference_images: prompt.productImage

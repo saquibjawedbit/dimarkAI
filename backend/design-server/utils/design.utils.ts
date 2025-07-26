@@ -1,6 +1,6 @@
 import { IImageData, IPromptResponse } from "../types";
 import { Prompts } from "../constants/prompts";
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from "openai";
 import axios from "axios";
 
 
@@ -52,12 +52,11 @@ export class DesignUtils {
         use_case: string,
         festival_or_season: string
     ): Promise<string[]> {
-        const geminiApiKey = process.env.GEMINI_API_KEY;
-        if (!geminiApiKey) {
-            throw new Error('GEMINI_API_KEY environment variable is required');
+        const openAiApiKey = process.env.OPENAI_API_KEY;
+        if (!openAiApiKey) {
+            throw new Error('OPENAI_API_KEY environment variable is required');
         }
-        const genAI = new GoogleGenerativeAI(geminiApiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const client = new OpenAI();
 
         const prompts = [
             Prompts.minimalProductShotPrompt(
@@ -65,15 +64,6 @@ export class DesignUtils {
                 product_or_service
             ),
             Prompts.trendyCasualLifestylePrompt(
-                business_type,
-                product_or_service,
-                target_audience
-            ),
-            Prompts.professionalCorporatePrompt(
-                business_type,
-                product_or_service
-            ),
-            Prompts.funCartoonyPrompt(
                 business_type,
                 product_or_service,
                 target_audience
@@ -86,6 +76,7 @@ export class DesignUtils {
             Prompts.visualStorytellingPrompt(
                 business_type,
                 target_audience,
+                product_or_service,
                 use_case
             ),
             Prompts.seasonalFestivalPrompt(
@@ -99,17 +90,21 @@ export class DesignUtils {
 
         const responsePromises = prompts.map(async (prompt) => {
             try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
+                const response = await client.responses.create({
+                    model: "gpt-4o",
+                    input: prompt,
+                });
+
+                return response.output_text;
             } catch (err) {
-            console.error("Gemini API error:", err);
-            return "";
+                console.error("Gemini API error:", err);
+                return "";
             }
         });
 
         const outputs = await Promise.all(responsePromises);
         responses.push(...outputs);
+        console.log("Generated prompts:", responses);
 
         return responses;
     }
