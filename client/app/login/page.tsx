@@ -7,6 +7,7 @@ import { ApiEndpoints } from "../../api/endpoints/apiConfig"
 
 import React from "react"
 import { useState } from "react"
+import { initializeFacebookSDK, loginWithFacebook } from "@/lib/facebook"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,9 +49,37 @@ export default function LoginPage() {
     }
   }
 
-  const handleSocialLogin = (provider: string) => {
-    console.log(`Login with ${provider}`)
-    // Implement social login logic here
+  const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "YOUR_FACEBOOK_APP_ID";
+
+  const handleSocialLogin = async (provider: string) => {
+    if (provider === "facebook") {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await initializeFacebookSDK(FACEBOOK_APP_ID);
+        const fbResult = await loginWithFacebook();
+        if (!fbResult.accessToken) {
+          setError("Facebook login failed: No access token.");
+          setIsLoading(false);
+          return;
+        }
+        // Send accessToken to backend
+        const response = await axiosClient.post(ApiEndpoints.facebookLogin, { accessToken: fbResult.accessToken });
+        const { user, accessToken: serverAccessToken, refreshToken } = response.data.data;
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("accessToken", serverAccessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        setUser(user);
+        window.location.href = "/dashboard";
+      } catch (err: any) {
+        setError(err?.response?.data?.message || err.message || "Facebook login failed");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Google login or other providers can be handled here
+      console.log(`Login with ${provider}`);
+    }
   }
 
   return (
