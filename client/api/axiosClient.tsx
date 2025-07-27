@@ -33,15 +33,11 @@ async function refreshToken() {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) throw new Error("No refresh token");
-    const response = await axios.post(
+    const response = await axiosClient.post(
       ApiEndpoints.refresh || "/api/auth/refresh-token",
-      {},
-      {
-        withCredentials: true,
-        headers: { "Authorization": `Bearer ${refreshToken}` },
-      }
+      { refreshToken }, // Pass refresh token in body
     );
-    const { accessToken, refreshToken: newRefreshToken, user } = response.data;
+    const { accessToken, refreshToken: newRefreshToken, user } = response.data.data;
     localStorage.setItem("accessToken", accessToken);
     if (newRefreshToken) localStorage.setItem("refreshToken", newRefreshToken);
     if (user) localStorage.setItem("user", JSON.stringify(user));
@@ -61,6 +57,7 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const newToken = await refreshToken();
+        console.log("Token refreshed successfully");
         originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
