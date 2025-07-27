@@ -14,35 +14,39 @@ declare global {
 }
 
 export const initializeFacebookSDK = (appId: string): Promise<void> => {
-  return new Promise((resolve) => {
-    // Check if SDK is already loaded
-    if (window.FB) {
-      resolve();
-      return;
-    }
+  // Use a static variable to track initialization
+  if (!(window as any)._fbInitPromise) {
+    (window as any)._fbInitPromise = new Promise<void>((resolve) => {
+      // If FB is already loaded
+      if (window.FB) {
+        resolve();
+        return;
+      }
 
-    // Define fbAsyncInit
-    window.fbAsyncInit = function() {
-      window.FB.init({
-        appId: appId,
-        cookie: true,
-        xfbml: true,
-        version: 'v18.0'
-      });
-      resolve();
-    };
+      window.fbAsyncInit = function() {
+        window.FB.init({
+          appId: appId,
+          cookie: true,
+          xfbml: true,
+          version: 'v18.0'
+        });
+        resolve();
+      };
 
-    // Load the SDK
-    const script = document.createElement('script');
-    script.id = 'facebook-jssdk';
-    script.src = 'https://connect.facebook.net/en_US/sdk.js';
-    script.async = true;
-    script.defer = true;
-    script.crossOrigin = 'anonymous';
-    
-    const firstScript = document.getElementsByTagName('script')[0];
-    firstScript.parentNode?.insertBefore(script, firstScript);
-  });
+      // Only add script if not present
+      if (!document.getElementById('facebook-jssdk')) {
+        const script = document.createElement('script');
+        script.id = 'facebook-jssdk';
+        script.src = 'https://connect.facebook.net/en_US/sdk.js';
+        script.async = true;
+        script.defer = true;
+        script.crossOrigin = 'anonymous';
+        const firstScript = document.getElementsByTagName('script')[0];
+        firstScript.parentNode?.insertBefore(script, firstScript);
+      }
+    });
+  }
+  return (window as any)._fbInitPromise;
 };
 
 export const loginWithFacebook = (): Promise<{

@@ -2,6 +2,7 @@ import { IImageData, IPromptResponse } from "../types";
 import { Prompts } from "../constants/prompts";
 import OpenAI from "openai";
 import axios from "axios";
+import FormData from "form-data";
 
 
 
@@ -20,7 +21,11 @@ export class DesignUtils {
             formData.append("style_type", imageData.style_type || "REALISTIC");
 
             if (imageData.style_reference_images) {
-                formData.append("style_reference_images", imageData.style_reference_images);
+                formData.append(
+                    "style_reference_images",
+                    imageData.style_reference_images.buffer,
+                    imageData.style_reference_images.originalname
+                );
             }
 
             const response = await axios.post(
@@ -29,7 +34,6 @@ export class DesignUtils {
                 {
                     headers: {
                         "Api-Key": this.apiKey,
-                        "Content-Type": "multipart/form-data",
                     },
                 }
             );
@@ -104,7 +108,6 @@ export class DesignUtils {
 
         const outputs = await Promise.all(responsePromises);
         responses.push(...outputs);
-        console.log("Generated prompts:", responses);
 
         return responses;
     }

@@ -1,5 +1,5 @@
 export interface IPrompt {
-    productImage?: File | null,
+    productImage?: Express.Multer.File | null | undefined,
     businessType: string,
     productDescription?: string,
     targetAudience: string,
@@ -15,7 +15,7 @@ export interface IImageData {
     rendering_speed?: "TURBO" | "DEFAULT" | "QUALITY";
     magic_prompt?: "AUTO" | "OFF" | "ON";
     style_type?: "REALISTIC" | "AUTO" | "GENERAL" | "DESIGN";
-    style_reference_images?: File | null;
+    style_reference_images?: Express.Multer.File | null | undefined;
 }
 
 export interface IPromptResponseItem {

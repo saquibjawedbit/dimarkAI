@@ -64,13 +64,31 @@ export default function BannerDesignPage() {
     const generateBanners = async () => {
         setIsGenerating(true)
 
+        // Use FormData to send image and text fields
+        const fd = new FormData();
+        if (formData.productImage) {
+            fd.append("productImage", formData.productImage);
+        }
+        fd.append("businessType", formData.businessType);
+        fd.append("productDescription", formData.productDescription);
+        fd.append("targetAudience", formData.targetAudience);
+        fd.append("additionalInformation", formData.additionalInformation);
+        fd.append("useCase", formData.useCase);
+        fd.append("festivalOrSeason", formData.festivalOrSeason);
+
         const response = await axiosClient.post(
-            ApiEndpoints.generateDesigns, formData
+            ApiEndpoints.generateDesigns,
+            fd,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }
         );
 
         setGeneratedBanners(response.data.data);
-        setIsGenerating(false)
-        setCurrentStep(3)
+        setIsGenerating(false);
+        setCurrentStep(3);
     }
 
     return (

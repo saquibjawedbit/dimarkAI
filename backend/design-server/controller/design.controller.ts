@@ -10,9 +10,17 @@ export class DesignController {
     }
 
     async design(req: Request, res: Response) {
-        const prompt: IPrompt = req.body;
+        // req.file is populated by multer middleware
+        const prompt: IPrompt = {
+            businessType: req.body.businessType,
+            productDescription: req.body.productDescription,
+            targetAudience: req.body.targetAudience,
+            additionalInformation: req.body.additionalInformation,
+            useCase: req.body.useCase,
+            festivalOrSeason: req.body.festivalOrSeason,
+            productImage: req.file
+        };
         const images = await this.designService.generateDesigns(prompt);
-        console.log("Generated images:", images);
         return res.status(200).json({
             success: true,
             message: "Designs generated successfully",
