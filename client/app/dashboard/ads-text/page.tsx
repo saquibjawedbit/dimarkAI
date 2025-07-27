@@ -208,22 +208,22 @@ export const GeminiTextGenerator: React.FC = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="max-w-6xl mx-auto p-6 bg-white">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Ad Text Generator</h1>
-                <p className="text-gray-600">
+                <h1 className="text-3xl font-bold text-black mb-2">AI Ad Text Generator</h1>
+                <p className="text-black">
                     Use AI to create and rephrase compelling Facebook ad copy that drives results
                 </p>
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 mb-6">
+            <div className="border-b border-black mb-6">
                 <nav className="-mb-px flex space-x-8">
                     <button
                         onClick={() => setActiveTab('rephrase')}
                         className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'rephrase'
-                            ? 'border-primary-500 text-primary-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-black text-black'
+                            : 'border-transparent text-gray-500 hover:text-black hover:border-black'
                             }`}
                     >
                         <div className="flex items-center">
@@ -234,8 +234,8 @@ export const GeminiTextGenerator: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('generate')}
                         className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'generate'
-                            ? 'border-primary-500 text-primary-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-black text-black'
+                            : 'border-transparent text-gray-500 hover:text-black hover:border-black'
                             }`}
                     >
                         <div className="flex items-center">
@@ -248,9 +248,9 @@ export const GeminiTextGenerator: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Input Form */}
-                <Card>
+                <Card className="border border-black bg-white">
                     <CardHeader>
-                        <CardTitle className="flex items-center">
+                        <CardTitle className="flex items-center text-black">
                             <Wand2 size={20} className="mr-2" />
                             {activeTab === 'rephrase' ? 'Rephrase Existing Text' : 'Generate New Ad Text'}
                         </CardTitle>
