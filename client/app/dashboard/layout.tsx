@@ -85,14 +85,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
     return (
         <SidebarProvider>
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex w-full">
-                <Sidebar className="border-r border-gray-200 bg-white">
-                    <SidebarHeader className="border-b border-gray-200 p-4">
+            <div className="min-h-screen bg-white flex w-full">
+                <Sidebar className="border-r border-black bg-white">
+                    <SidebarHeader className="border-b border-black p-4">
                         <div className="flex items-center space-x-3 mb-4">
-                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                                 <Bot className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                            <span className="text-xl font-bold text-black">
                                 DiMark AI
                             </span>
                         </div>
@@ -102,44 +102,44 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className="w-full justify-between bg-gray-50 hover:bg-gray-100 border-gray-200"
+                                    className="w-full justify-between bg-white hover:bg-gray-100 border-black text-black"
                                 >
                                     <div className="flex items-center space-x-3">
                                         <Avatar className="w-6 h-6">
-                                            <AvatarFallback className="text-xs bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                                            <AvatarFallback className="text-xs bg-black text-white">
                                                 {selectedOrg.avatar}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="text-left">
-                                            <p className="text-sm font-medium text-gray-900">{selectedOrg.name}</p>
+                                            <p className="text-sm font-medium text-black">{selectedOrg.name}</p>
                                             <p className="text-xs text-gray-500">{selectedOrg.type}</p>
                                         </div>
                                     </div>
-                                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                                    <ChevronDown className="w-4 h-4 text-black" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-64" align="start">
-                                <DropdownMenuLabel>Switch Organization</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
+                            <DropdownMenuContent className="w-64 bg-white border-black" align="start">
+                                <DropdownMenuLabel className="text-black">Switch Organization</DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-black" />
                                 {organizations.map((org) => (
                                     <DropdownMenuItem
                                         key={org.id}
                                         onClick={() => setSelectedOrg(org)}
-                                        className="flex items-center space-x-3 p-3"
+                                        className="flex items-center space-x-3 p-3 text-black hover:bg-gray-100"
                                     >
                                         <Avatar className="w-6 h-6">
-                                            <AvatarFallback className="text-xs bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                                            <AvatarFallback className="text-xs bg-black text-white">
                                                 {org.avatar}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <p className="text-sm font-medium">{org.name}</p>
+                                            <p className="text-sm font-medium text-black">{org.name}</p>
                                             <p className="text-xs text-gray-500">{org.type}</p>
                                         </div>
                                     </DropdownMenuItem>
                                 ))}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="flex items-center space-x-2">
+                                <DropdownMenuSeparator className="bg-black" />
+                                <DropdownMenuItem className="flex items-center space-x-2 text-black hover:bg-gray-100">
                                     <Plus className="w-4 h-4" />
                                     <span>Add Organization</span>
                                 </DropdownMenuItem>
@@ -149,7 +149,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                     <SidebarContent>
                         <SidebarGroup>
-                            <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">
+                            <SidebarGroupLabel className="text-xs font-semibold text-black uppercase tracking-wider px-3 py-2">
                                 Navigation
                             </SidebarGroupLabel>
                             <SidebarGroupContent>
@@ -159,7 +159,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                                             <SidebarMenuButton
                                                 asChild
                                                 isActive={navigationItems[index].title === selectedItem.title}
-                                                className="w-full justify-start px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 data-[active=true]:bg-gradient-to-r data-[active=true]:from-purple-50 data-[active=true]:to-indigo-50 data-[active=true]:text-purple-700 data-[active=true]:border-r-2 data-[active=true]:border-purple-500"
+                                                className="w-full justify-start px-3 py-2 text-black hover:bg-gray-100 hover:text-black data-[active=true]:bg-black data-[active=true]:text-white data-[active=true]:border-r-2 data-[active=true]:border-black"
                                                 onClick={() => setSelectedItem(item)}
                                             >
                                                 <Link href={item.url} className="flex items-center space-x-3">
@@ -174,40 +174,40 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                         </SidebarGroup>
                     </SidebarContent>
 
-                    <SidebarFooter className="border-t border-gray-200 p-4">
+                    <SidebarFooter className="border-t border-black p-4">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="w-full justify-start px-0">
+                                <Button variant="ghost" className="w-full justify-start px-0 text-black">
                                     <Avatar className="w-8 h-8 mr-3">
-                                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                                        <AvatarFallback className="bg-black text-white">
                                             JD
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="text-left flex-1">
-                                        <p className="text-sm font-medium text-gray-900">John Doe</p>
+                                        <p className="text-sm font-medium text-black">John Doe</p>
                                         <p className="text-xs text-gray-500">john@example.com</p>
                                     </div>
-                                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                                    <ChevronDown className="w-4 h-4 text-black" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
+                            <DropdownMenuContent className="w-56 bg-white border-black" align="end" forceMount>
+                                <DropdownMenuLabel className="font-normal text-black">
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">John Doe</p>
-                                        <p className="text-xs leading-none text-muted-foreground">john@example.com</p>
+                                        <p className="text-sm font-medium leading-none text-black">John Doe</p>
+                                        <p className="text-xs leading-none text-gray-500">john@example.com</p>
                                     </div>
                                 </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
+                                <DropdownMenuSeparator className="bg-black" />
+                                <DropdownMenuItem className="text-black hover:bg-gray-100">
                                     <User className="mr-2 h-4 w-4" />
                                     <span>Profile</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem className="text-black hover:bg-gray-100">
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>Settings</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
+                                <DropdownMenuSeparator className="bg-black" />
+                                <DropdownMenuItem className="text-black hover:bg-gray-100">
                                     <LogOut className="mr-2 h-4 w-4" />
                                     <span>Log out</span>
                                 </DropdownMenuItem>
@@ -216,7 +216,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </SidebarFooter>
                     <SidebarRail />
                 </Sidebar>
-                <SidebarInset className="flex-1" >{children}</SidebarInset>
+                <SidebarInset className="flex-1 bg-white">{children}</SidebarInset>
             </div>
         </SidebarProvider>
     );
