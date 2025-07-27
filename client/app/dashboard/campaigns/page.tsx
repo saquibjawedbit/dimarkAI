@@ -457,16 +457,16 @@ const DashboardCampaigns: React.FC = () => {
     };
 
     return (
-        <div className="pt-4">
+        <div className="flex flex-col min-h-screen bg-white px-0 md:px-6 pt-8 transition-all">
             {/* Header Section */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 px-2 md:px-0">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Campaigns</h1>
                     <p className="text-gray-600 mt-2">
                         Manage your advertising campaigns and ad creatives
                     </p>
                 </div>
-                <div className="mt-4 sm:mt-0 flex space-x-3">
+                <div className="flex flex-row gap-2 mt-4 md:mt-0">
                     <Button
                         variant="secondary"
                         onClick={() => router.push('/dashboard/ai-text-generator')}
@@ -485,70 +485,70 @@ const DashboardCampaigns: React.FC = () => {
                 </div>
             </div>
 
-      {/* Tabs */ }
-    <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-            <button
-                onClick={() => setActiveTab('campaigns')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'campaigns'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-            >
-                Campaigns ({campaigns.length})
-            </button>
-            <button
-                onClick={() => setActiveTab('creatives')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'creatives'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-            >
-                Ad Creatives ({creatives.length})
-            </button>
-        </nav>
-    </div>
-
-    {/* Filters and Search */ }
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+            {/* Tabs */}
+            <div className="border-b border-gray-200 mb-6 px-2 md:px-0">
+                <nav className="-mb-px flex space-x-8">
+                    <button
+                        onClick={() => setActiveTab('campaigns')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'campaigns'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        Campaigns ({campaigns.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('creatives')}
+                        className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'creatives'
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        Ad Creatives ({creatives.length})
+                    </button>
+                </nav>
             </div>
-            <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                placeholder={`Search ${activeTab}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-        </div>
-        <div className="flex items-center space-x-2">
-            <Filter size={16} className="text-gray-400" />
-            <select
-                className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-            >
-                <option value="all">All Status</option>
-                {activeTab === 'campaigns' ? (
-                    <>
-                        <option value="active">Active</option>
-                        <option value="paused">Paused</option>
-                        <option value="draft">Draft</option>
-                    </>
-                ) : (
-                    <>
-                        <option value="ACTIVE">Active</option>
-                        <option value="PAUSED">Paused</option>
-                        <option value="PENDING_REVIEW">Pending Review</option>
-                        <option value="DISAPPROVED">Disapproved</option>
-                        <option value="PREAPPROVED">Pre-approved</option>
-                    </>
-                )}
-            </select>
-        </div>
-    </div>
+
+            {/* Filters and Search */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6 px-2 md:px-0">
+                <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                        type="text"
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder={`Search ${activeTab}...`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Filter size={16} className="text-gray-400" />
+                    <select
+                        className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">All Status</option>
+                        {activeTab === 'campaigns' ? (
+                            <>
+                                <option value="active">Active</option>
+                                <option value="paused">Paused</option>
+                                <option value="draft">Draft</option>
+                            </>
+                        ) : (
+                            <>
+                                <option value="ACTIVE">Active</option>
+                                <option value="PAUSED">Paused</option>
+                                <option value="PENDING_REVIEW">Pending Review</option>
+                                <option value="DISAPPROVED">Disapproved</option>
+                                <option value="PREAPPROVED">Pre-approved</option>
+                            </>
+                        )}
+                    </select>
+                </div>
+            </div>
 
     {/* Content */ }
     {
