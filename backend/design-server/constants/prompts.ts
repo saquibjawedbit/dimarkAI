@@ -42,9 +42,13 @@ export class Prompts {
         product_or_service: string,
         use_case: string
     ): string {
-        return `For a business in the category '${business_type}', generate a detailed storytelling visual prompt about the product ${product_or_service} where the image tells a compelling story or use-case. Include real Indian characters (human beings), realistic setting, and emotional tone relevant to the target audience.
-        Example Output (for a skincare brand):
-        A young Indian woman standing in front of a mirror, visibly stressed about acne, then in the same frame smiling confidently after using a dermatology product, soft lighting and pastel tones, emotional, transformation-based storytelling`;
+
+        return `
+        Based on the following business details, generate a prompt to be used for Ideogram to create a Facebook/Instagram ad creative. The prompt should focus on visual storytelling with real Indian Human beings, brand tone, and intended audience. Avoid long text or marketing jargon. Include industry-specific visual suggestions, and end with a reminder for format and alignment.
+        Based on the following business details:
+        Business Type: ${business_type}
+        Target Audience: ${target_audience}
+        Product/Service: ${product_or_service}`;
     }
 
     static seasonalFestivalPrompt(

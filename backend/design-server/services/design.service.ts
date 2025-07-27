@@ -30,9 +30,6 @@ export class DesignService {
                 return res.data[0].url;
             })
         );
-
         return response;
     }
-
-
 }

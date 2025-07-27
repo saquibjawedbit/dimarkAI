@@ -14,7 +14,6 @@ export class DesignUtils {
         try {
             const formData = new FormData();
             formData.append("prompt", imageData.prompt);
-            //formData.append("resolution", imageData.resolution || "");
             formData.append("aspect_ratio", imageData.aspectRatio || "1x1");
             formData.append("rendering_speed", imageData.rendering_speed || "QUALITY");
             formData.append("magic_prompt", imageData.magic_prompt || "AUTO");

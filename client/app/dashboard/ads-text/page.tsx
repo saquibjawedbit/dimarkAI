@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wand2, Copy, RefreshCw, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
 import { geminiService, RephraseTextRequest, GenerateTextRequest, GeminiOptions } from '@/lib/services/gemini';
+import MarkdownRenderer from './MarkdownRenderer';
 
 export const GeminiTextGenerator: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'rephrase' | 'generate'>('rephrase');
@@ -29,17 +30,14 @@ export const GeminiTextGenerator: React.FC = () => {
     const [rephraseTone, setRephraseTone] = useState<'professional' | 'casual' | 'friendly' | 'urgent' | 'persuasive'>('persuasive');
     const [rephrasePlatform, setRephrasePlatform] = useState<'facebook' | 'instagram' | 'general'>('facebook');
 
-    // Generate form state
-    const [productName, setProductName] = useState('');
-    const [description, setDescription] = useState('');
-    const [targetAudience, setTargetAudience] = useState('');
-    const [campaignObjective, setCampaignObjective] = useState<'brand_awareness' | 'reach' | 'traffic' | 'engagement' | 'app_installs' | 'video_views' | 'lead_generation' | 'conversions'>('conversions');
-    const [tone, setTone] = useState<'professional' | 'casual' | 'friendly' | 'urgent' | 'persuasive'>('persuasive');
-    const [platform, setPlatform] = useState<'facebook' | 'instagram' | 'general'>('facebook');
-    const [adFormat, setAdFormat] = useState<'single_image' | 'video' | 'carousel' | 'collection'>('single_image');
-    const [callToAction, setCallToAction] = useState('');
-    const [budget, setBudget] = useState<number | undefined>(undefined);
-    const [additionalContext, setAdditionalContext] = useState('');
+        // New fields for business info
+    const [businessType, setBusinessType] = useState('');
+    const [productsServices, setProductsServices] = useState('');
+    const [location, setLocation] = useState('');
+    const [brandTone, setBrandTone] = useState('');
+    const [offerDetails, setOfferDetails] = useState('');
+    const [festiveContext, setFestiveContext] = useState('');
+    const [preferredRegionalLanguage, setPreferredRegionalLanguage] = useState('');
 
     // Load options on component mount
     useEffect(() => {
@@ -77,40 +75,32 @@ export const GeminiTextGenerator: React.FC = () => {
             const response = await geminiService.rephraseText(request);
 
             if (response.success) {
-
-                // Parse the response if it's a JSON string
-                let parsedResult: any = response.data?.generatedText;
-
-                // Extract JSON from markdown (inside ```json ... ```)
-                const jsonMatch = parsedResult?.match(/```json\s*([\s\S]*?)\s*```/i);
-                if (jsonMatch && jsonMatch[1]) {
-                    try {
-                        parsedResult = JSON.parse(jsonMatch[1]);
-                    } catch (e) {
-                        console.error("Failed to parse JSON:", e);
-                        parsedResult = {}; // fallback to empty object
-                    }
-                }
-
-                console.log('Parsed result:', parsedResult);
-
-                // Map the parsed result to our expected format
+                // Use new response structure directly, with type assertion
+                const data = response.data as {
+                    generatedText?: string;
+                    originalText?: string;
+                    explanation?: string;
+                    key_improvements?: string[];
+                    suggestions?: string[];
+                    hashtags?: string[];
+                    tips?: string[];
+                    metadata?: any;
+                } || {};
                 const formattedResult = {
-                    generatedText: parsedResult.rephrased_text || parsedResult.generatedText || parsedResult.generated_text || '',
-                    originalText: rephraseText,
-                    explanation: parsedResult.explanation || '',
-                    key_improvements: parsedResult.key_improvements || [],
-                    suggestions: parsedResult.alternatives || parsedResult.suggestions || [],
-                    hashtags: parsedResult.hashtags || [],
-                    tips: parsedResult.tips || [],
-                    metadata: {
+                    generatedText: data.generatedText || '',
+                    originalText: data.originalText || rephraseText,
+                    explanation: data.explanation || '',
+                    key_improvements: data.key_improvements || [],
+                    suggestions: data.suggestions || [],
+                    hashtags: data.hashtags || [],
+                    tips: data.tips || [],
+                    metadata: data.metadata || {
                         tone: rephraseTone,
                         platform: rephrasePlatform,
                         audience: rephraseAudience || 'General',
                         objective: 'rephrase'
                     }
                 };
-
                 setResult(formattedResult);
             } else {
                 setError(response.error || 'Failed to rephrase text');
@@ -124,72 +114,47 @@ export const GeminiTextGenerator: React.FC = () => {
     };
 
     const handleGenerateText = async () => {
-        if (!productName.trim()) {
-            setError('Please enter a product name');
-            return;
-        }
 
         setLoading(true);
         setError(null);
         setResult(null);
 
         try {
-            const request: GenerateTextRequest = {
-                productName,
-                description: description || undefined,
-                targetAudience: targetAudience || undefined,
-                campaignObjective,
-                tone,
-                platform,
-                adFormat,
-                callToAction: callToAction || undefined,
-                budget,
-                additionalContext: additionalContext || undefined,
+            const request: any = {
+                targetAudience: rephraseAudience,
+                businessType: businessType,
+                productsServices: productsServices,
+                location: location,
+                brandTone: rephraseTone,
+                offerDetails: offerDetails,
+                festiveContext: festiveContext,
+                preferredRegionalLanguage: preferredRegionalLanguage,
             };
 
             const response = await geminiService.generateAdText(request);
 
             if (response.success) {
-
-                let parsedResult: any = response.data?.generatedText;
-
-                // Extract JSON from markdown (inside ```json ... ```)
-                const jsonMatch = parsedResult?.match(/```json\s*([\s\S]*?)\s*```/i);
-                if (jsonMatch && jsonMatch[1]) {
-                    try {
-                        parsedResult = JSON.parse(jsonMatch[1]);
-                    } catch (e) {
-                        console.error("Failed to parse JSON:", e);
-                        parsedResult = {}; // fallback to empty object
-                    }
-                }
-
-                console.log('Parsed result:', parsedResult);
-
-                // Map the parsed result to our expected format
+                // Use new response structure directly, with type assertion
+                const data = response.data as {
+                    generatedText?: string;
+                    headline?: string;
+                    description?: string;
+                    explanation?: string;
+                    key_improvements?: string[];
+                    suggestions?: string[];
+                    hashtags?: string[];
+                    tips?: string[];
+                    metadata?: any;
+                } || {};
                 const formattedResult = {
-                    generatedText: parsedResult.primary_text || parsedResult.generated_text || parsedResult.generatedText || '',
-                    headline: parsedResult.headline || '',
-                    description: parsedResult.description || '',
-                    explanation: parsedResult.explanation || '',
-                    key_improvements: parsedResult.key_improvements || [],
-                    suggestions: Array.isArray(parsedResult.alternatives)
-                        ? parsedResult.alternatives.map((alt: any) =>
-                            typeof alt === 'string'
-                                ? alt
-                                : alt.primary_text || alt.text || JSON.stringify(alt)
-                        )
-                        : [],
-                    hashtags: parsedResult.hashtags || [],
-                    tips: parsedResult.tips || [],
-                    metadata: {
-                        tone: tone,
-                        platform: platform,
-                        audience: targetAudience || 'General',
-                        objective: campaignObjective
-                    }
+                    generatedText: data.generatedText || '',
+                    headline: data.headline || '',
+                    explanation: data.explanation || '',
+                    key_improvements: data.key_improvements || [],
+                    suggestions: data.suggestions || [],
+                    hashtags: data.hashtags || [],
+                    tips: data.tips || [],
                 };
-
                 setResult(formattedResult);
             } else {
                 setError(response.error || 'Failed to generate ad text');
@@ -259,9 +224,77 @@ export const GeminiTextGenerator: React.FC = () => {
                         {activeTab === 'rephrase' ? (
                             <>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Text to Rephrase *
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Type</label>
+                                    <input
+                                        type="text"
+                                        value={businessType}
+                                        onChange={(e) => setBusinessType(e.target.value)}
+                                        placeholder="e.g., Retail, Restaurant, Tech Startup"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Products & Services</label>
+                                    <input
+                                        type="text"
+                                        value={productsServices}
+                                        onChange={(e) => setProductsServices(e.target.value)}
+                                        placeholder="e.g., Shoes, Consulting, Food Delivery"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                                    <input
+                                        type="text"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        placeholder="e.g., Mumbai, Delhi, Online"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Brand Tone</label>
+                                    <input
+                                        type="text"
+                                        value={brandTone}
+                                        onChange={(e) => setBrandTone(e.target.value)}
+                                        placeholder="e.g., Friendly, Professional, Youthful"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Offer Details</label>
+                                    <input
+                                        type="text"
+                                        value={offerDetails}
+                                        onChange={(e) => setOfferDetails(e.target.value)}
+                                        placeholder="e.g., 20% Off, Free Delivery, Buy 1 Get 1"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Festive Context</label>
+                                    <input
+                                        type="text"
+                                        value={festiveContext}
+                                        onChange={(e) => setFestiveContext(e.target.value)}
+                                        placeholder="e.g., Diwali, Christmas, Summer Sale"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Regional Language</label>
+                                    <input
+                                        type="text"
+                                        value={preferredRegionalLanguage}
+                                        onChange={(e) => setPreferredRegionalLanguage(e.target.value)}
+                                        placeholder="e.g., Hindi, Marathi, Tamil"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Text to Rephrase *</label>
                                     <textarea
                                         value={rephraseText}
                                         onChange={(e) => setRephraseText(e.target.value)}
@@ -274,11 +307,8 @@ export const GeminiTextGenerator: React.FC = () => {
                                         {rephraseText.length}/{options?.limits?.maxTextLength || 1000} characters
                                     </p>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Target Audience
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
                                     <input
                                         type="text"
                                         value={rephraseAudience}
@@ -287,43 +317,32 @@ export const GeminiTextGenerator: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                                     />
                                 </div>
-
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Tone
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
                                         <select
                                             value={rephraseTone}
                                             onChange={(e) => setRephraseTone(e.target.value as any)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                                         >
                                             {options?.tones?.map((t: string) => (
-                                                <option key={t} value={t}>
-                                                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                                                </option>
+                                                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                                             ))}
                                         </select>
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Platform
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
                                         <select
                                             value={rephrasePlatform}
                                             onChange={(e) => setRephrasePlatform(e.target.value as any)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                                         >
                                             {options?.platforms?.map((p: string) => (
-                                                <option key={p} value={p}>
-                                                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                                                </option>
+                                                <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                                             ))}
                                         </select>
                                     </div>
                                 </div>
-
                                 <Button
                                     onClick={handleRephraseText}
                                     disabled={loading || !rephraseText.trim()}
@@ -335,164 +354,115 @@ export const GeminiTextGenerator: React.FC = () => {
                         ) : (
                             <>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Product/Service Name *
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Type</label>
                                     <input
                                         type="text"
-                                        value={productName}
-                                        onChange={(e) => setProductName(e.target.value)}
-                                        placeholder="Enter your product or service name..."
+                                        value={businessType}
+                                        onChange={(e) => setBusinessType(e.target.value)}
+                                        placeholder="e.g., Retail, Restaurant, Tech Startup"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                        maxLength={options?.limits?.maxProductNameLength || 100}
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Describe your product or service..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                        rows={4}
-                                        maxLength={options?.limits?.maxDescriptionLength || 500}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Target Audience
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Products & Services</label>
                                     <input
                                         type="text"
-                                        value={targetAudience}
-                                        onChange={(e) => setTargetAudience(e.target.value)}
+                                        value={productsServices}
+                                        onChange={(e) => setProductsServices(e.target.value)}
+                                        placeholder="e.g., Shoes, Consulting, Food Delivery"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                                    <input
+                                        type="text"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        placeholder="e.g., Mumbai, Delhi, Online"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Brand Tone</label>
+                                    <input
+                                        type="text"
+                                        value={brandTone}
+                                        onChange={(e) => setBrandTone(e.target.value)}
+                                        placeholder="e.g., Friendly, Professional, Youthful"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Offer Details</label>
+                                    <input
+                                        type="text"
+                                        value={offerDetails}
+                                        onChange={(e) => setOfferDetails(e.target.value)}
+                                        placeholder="e.g., 20% Off, Free Delivery, Buy 1 Get 1"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Festive Context</label>
+                                    <input
+                                        type="text"
+                                        value={festiveContext}
+                                        onChange={(e) => setFestiveContext(e.target.value)}
+                                        placeholder="e.g., Diwali, Christmas, Summer Sale"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Regional Language</label>
+                                    <input
+                                        type="text"
+                                        value={preferredRegionalLanguage}
+                                        onChange={(e) => setPreferredRegionalLanguage(e.target.value)}
+                                        placeholder="e.g., Hindi, Marathi, Tamil"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+                                    <input
+                                        type="text"
+                                        value={rephraseAudience}
+                                        onChange={(e) => setRephraseAudience(e.target.value)}
                                         placeholder="e.g., young professionals, fitness enthusiasts, parents..."
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                                     />
                                 </div>
-
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Campaign Objective
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
                                         <select
-                                            value={campaignObjective}
-                                            onChange={(e) => setCampaignObjective(e.target.value as any)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                        >
-                                            {options?.campaignObjectives?.map((obj: string) => (
-                                                <option key={obj} value={obj}>
-                                                    {obj.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Tone
-                                        </label>
-                                        <select
-                                            value={tone}
-                                            onChange={(e) => setTone(e.target.value as any)}
+                                            value={rephraseTone}
+                                            onChange={(e) => setRephraseTone(e.target.value as any)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                                         >
                                             {options?.tones?.map((t: string) => (
-                                                <option key={t} value={t}>
-                                                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                                                </option>
+                                                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                                             ))}
                                         </select>
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Platform
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
                                         <select
-                                            value={platform}
-                                            onChange={(e) => setPlatform(e.target.value as any)}
+                                            value={rephrasePlatform}
+                                            onChange={(e) => setRephrasePlatform(e.target.value as any)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                                         >
                                             {options?.platforms?.map((p: string) => (
-                                                <option key={p} value={p}>
-                                                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                                                </option>
+                                                <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
                                             ))}
                                         </select>
                                     </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Ad Format
-                                        </label>
-                                        <select
-                                            value={adFormat}
-                                            onChange={(e) => setAdFormat(e.target.value as any)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                        >
-                                            {options?.adFormats?.map((format: string) => (
-                                                <option key={format} value={format}>
-                                                    {format.split('_').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Call to Action
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={callToAction}
-                                            onChange={(e) => setCallToAction(e.target.value)}
-                                            placeholder="e.g., Shop Now, Learn More, Sign Up..."
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Budget (₹)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={budget || ''}
-                                            onChange={(e) => setBudget(e.target.value ? Number(e.target.value) : undefined)}
-                                            placeholder="e.g., 1000"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                            min="0"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Additional Context
-                                    </label>
-                                    <textarea
-                                        value={additionalContext}
-                                        onChange={(e) => setAdditionalContext(e.target.value)}
-                                        placeholder="Any additional requirements or context..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                                        rows={3}
-                                        maxLength={options?.limits?.maxAdditionalContextLength || 300}
-                                    />
                                 </div>
 
                                 <Button
                                     onClick={handleGenerateText}
-                                    disabled={loading || !productName.trim()}
+                                    disabled={loading}
                                     className="w-full"
                                 >
                                     {loading ? 'Generating...' : 'Generate Ad Text'}
@@ -544,7 +514,7 @@ export const GeminiTextGenerator: React.FC = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Main Result */}
+                                        {/* Main Result - Markdown rendered */}
                                         <div className="bg-green-50 border border-green-200 rounded-md p-4">
                                             <div className="flex justify-between items-start mb-2">
                                                 <h3 className="font-semibold text-green-800 text-lg">
@@ -560,7 +530,10 @@ export const GeminiTextGenerator: React.FC = () => {
                                                 </Button>
                                             </div>
                                             <div className="text-green-900 whitespace-pre-wrap font-medium">
-                                                {result.generatedText || 'No generated text available'}
+                                                {/* Markdown rendering for output */}
+                                                {result.generatedText ? (
+                                                    <MarkdownRenderer content={result.generatedText} />
+                                                ) : 'No generated text available'}
                                             </div>
                                         </div>
 
@@ -569,7 +542,7 @@ export const GeminiTextGenerator: React.FC = () => {
                                             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                                                 <h3 className="font-semibold text-blue-800 mb-3 text-lg">🧠 AI Explanation</h3>
                                                 <div className="text-blue-900">
-                                                    {result.explanation}
+                                                    <MarkdownRenderer content={result.explanation} />
                                                 </div>
                                             </div>
                                         )}

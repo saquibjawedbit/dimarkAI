@@ -53,10 +53,18 @@ export class GeminiController {
         text,
         targetAudience,
         tone,
-        platform
+        platform,
+        productsServices: req.body.productsServices,
+        brandTone: req.body.brandTone,
+        offerDetails: req.body.offerDetails,
+        festiveContext: req.body.festiveContext,
+        preferredRegionalLanguage: req.body.preferredRegionalLanguage,
+        buisinessName: req.body.buisinessName,
+        businessType: req.body.businessType,
+        location: req.body.location
       };
 
-      const result = await this.geminiService.rephraseText(request);
+      const result = await this.geminiService.rephraseText(request, (req as any).user);
 
       if (!result.success) {
         return res.status(500).json({
@@ -86,91 +94,27 @@ export class GeminiController {
   async generateAdText(req: Request, res: Response): Promise<Response> {
     try {
       const {
-        productName,
-        description,
         targetAudience,
-        campaignObjective,
-        tone,
-        platform,
-        adFormat,
-        callToAction,
-        budget,
-        additionalContext
-      } = req.body as GenerateTextRequest;
+        businessType,
+        productsServices,
+        location,
+        brandTone,
+        offerDetails,
+        festiveContext,
+        preferredRegionalLanguage
+      } = req.body;
 
-      // Validate required fields
-      if (!productName || productName.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Product name is required and cannot be empty'
-        } as ApiResponse);
-      }
-
-      if (productName.length > 100) {
-        return res.status(400).json({
-          success: false,
-          error: 'Product name must be less than 100 characters'
-        } as ApiResponse);
-      }
-
-      // Validate tone if provided
-      const validTones = ['professional', 'casual', 'friendly', 'urgent', 'persuasive'];
-      if (tone && !validTones.includes(tone)) {
-        return res.status(400).json({
-          success: false,
-          error: `Invalid tone. Must be one of: ${validTones.join(', ')}`
-        } as ApiResponse);
-      }
-
-      // Validate platform if provided
-      const validPlatforms = ['facebook', 'instagram', 'general'];
-      if (platform && !validPlatforms.includes(platform)) {
-        return res.status(400).json({
-          success: false,
-          error: `Invalid platform. Must be one of: ${validPlatforms.join(', ')}`
-        } as ApiResponse);
-      }
-
-      // Validate campaign objective if provided
-      const validObjectives = [
-        'brand_awareness', 'reach', 'traffic', 'engagement', 
-        'app_installs', 'video_views', 'lead_generation', 'conversions'
-      ];
-      if (campaignObjective && !validObjectives.includes(campaignObjective)) {
-        return res.status(400).json({
-          success: false,
-          error: `Invalid campaign objective. Must be one of: ${validObjectives.join(', ')}`
-        } as ApiResponse);
-      }
-
-      // Validate ad format if provided
-      const validFormats = ['single_image', 'video', 'carousel', 'collection'];
-      if (adFormat && !validFormats.includes(adFormat)) {
-        return res.status(400).json({
-          success: false,
-          error: `Invalid ad format. Must be one of: ${validFormats.join(', ')}`
-        } as ApiResponse);
-      }
-
-      // Validate budget if provided
-      if (budget !== undefined && (typeof budget !== 'number' || budget <= 0)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Budget must be a positive number'
-        } as ApiResponse);
-      }
 
       const request: GenerateTextRequest = {
-        productName,
-        description,
         targetAudience,
-        campaignObjective,
-        tone,
-        platform,
-        adFormat,
-        callToAction,
-        budget,
-        additionalContext
+        businessType,
+        productsServices,
+        location,
+        brandTone,
+        offerDetails,
+        festiveContext,
+        preferredRegionalLanguage,
+        buisinessName: req.body.buisinessName,
       };
 
       const result = await this.geminiService.generateAdText(request);
@@ -193,32 +137,6 @@ export class GeminiController {
       return res.status(500).json({
         success: false,
         error: 'Internal server error'
-      } as ApiResponse);
-    }
-  }
-
-  /**
-   * Health check endpoint for Gemini service
-   */
-  async healthCheck(req: Request, res: Response): Promise<Response> {
-    try {
-      const isHealthy = await this.geminiService.healthCheck();
-      
-      return res.json({
-        success: true,
-        data: {
-          status: isHealthy ? 'healthy' : 'unhealthy',
-          service: 'Gemini AI',
-          timestamp: new Date().toISOString()
-        },
-        message: isHealthy ? 'Gemini service is healthy' : 'Gemini service is not responding'
-      } as ApiResponse);
-
-    } catch (error) {
-      console.error('Error in Gemini health check:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to check Gemini service health'
       } as ApiResponse);
     }
   }

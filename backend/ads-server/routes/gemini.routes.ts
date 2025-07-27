@@ -39,12 +39,6 @@ router.post('/rephrase', geminiController.rephraseText.bind(geminiController));
  */
 router.post('/generate', geminiController.generateAdText.bind(geminiController));
 
-/**
- * @route   GET /api/gemini/health
- * @desc    Check if Gemini service is healthy
- * @access  Private (requires authentication)
- */
-router.get('/health', geminiController.healthCheck.bind(geminiController));
 
 /**
  * @route   GET /api/gemini/options

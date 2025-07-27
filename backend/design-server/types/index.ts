@@ -18,6 +18,14 @@ export interface IImageData {
     style_reference_images?: Express.Multer.File | null | undefined;
 }
 
+export interface IRemixData {
+    prompt: string;
+    image: Express.Multer.File | null | undefined;
+    aspectRatio?: "1x1" | "4x5";
+    rendering_speed?: "TURBO" | "DEFAULT" | "QUALITY";
+    magic_prompt?: "AUTO" | "OFF" | "ON";
+}
+
 export interface IPromptResponseItem {
     prompt: string;
     resolution: string;
