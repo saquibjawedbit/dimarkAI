@@ -37,6 +37,7 @@ interface Config {
   jwt: JWTConfig;
   redis: RedisConfig;
   gemini: GeminiConfig;
+  allowedOrigin: string;
 }
 
 export const config: Config = {
@@ -51,7 +52,7 @@ export const config: Config = {
   jwt: {
     accessTokenSecret: process.env.JWT_ACCESS_SECRET || 'your-super-secret-access-key',
     refreshTokenSecret: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key',
-    accessTokenExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
+    accessTokenExpiry: process.env.JWT_ACCESS_EXPIRY || '1m',
     refreshTokenExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   },
   redis: {
@@ -63,6 +64,7 @@ export const config: Config = {
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',
   },
+  allowedOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
 };
 
 // Validate required environment variables

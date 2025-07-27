@@ -6,15 +6,18 @@ const router = Router();
 const authController = new AuthController();
 
 // Public routes
-router.post('/register', AuthMiddleware.rateLimit(5, 15 * 60 * 1000), authController.register.bind(authController));
-router.post('/facebook-login', AuthMiddleware.rateLimit(5, 15 * 60 * 1000), authController.facebookLogin.bind(authController));
-router.post('/login', AuthMiddleware.rateLimit(5, 15 * 60 * 1000), authController.login.bind(authController));
+router.post('/register', authController.register.bind(authController));
+router.post('/facebook-login', authController.facebookLogin.bind(authController));
+router.post('/login', authController.login.bind(authController));
 router.post('/refresh-token', authController.refreshToken.bind(authController));
+
 
 // Protected routes (require authentication)
 router.post('/logout', AuthMiddleware.authenticateToken, authController.logout.bind(authController));
 router.get('/profile', AuthMiddleware.authenticateToken, authController.getProfile.bind(authController));
 router.put('/password', AuthMiddleware.authenticateToken, authController.updatePassword.bind(authController));
+router.post('/onboard', AuthMiddleware.authenticateToken, authController.onBoardUser.bind(authController));
+router.get('/high-quality-logo', authController.getHighQualityLogo.bind(authController));
 
 // Facebook token management routes
 router.get('/facebook-token/status', AuthMiddleware.authenticateToken, authController.hasFacebookToken.bind(authController));
@@ -24,7 +27,7 @@ router.delete('/facebook-token', AuthMiddleware.authenticateToken, authControlle
 // Admin routes (require admin role)
 router.get('/users', 
     AuthMiddleware.authenticateToken, 
-    AuthMiddleware.requireRole('admin'), 
+    AuthMiddleware.requireRole('admin'),
     authController.getAllUsers.bind(authController)
 );
 

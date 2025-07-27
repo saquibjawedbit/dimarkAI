@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
-import { 
-  LoginRequest, 
-  RegisterRequest, 
-  AppError 
+import {
+    LoginRequest,
+    RegisterRequest,
+    AppError
 } from '../../common';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { AuthService } from '../services/auth.service';
+import { IOrganization } from '../../common/models/Organization';
+import axios from 'axios';
+import { load } from 'cheerio';
 
 export class AuthController {
     private authService: AuthService;
@@ -19,9 +22,8 @@ export class AuthController {
      */
     async register(req: Request, res: Response): Promise<void> {
         try {
-            console.log('Registering user:', req.body);
             const registerData: RegisterRequest = req.body;
-            
+
             if (!registerData.name || !registerData.email || !registerData.password) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -29,9 +31,15 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.register(registerData);
-            
+
+            res.cookie('accessToken', result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                sameSite: 'none', // Prevent CSRF attacks
+            });
+
             res.status(201).json({
                 message: 'User registered successfully',
                 data: result
@@ -44,7 +52,7 @@ export class AuthController {
     async facebookLogin(req: Request, res: Response): Promise<void> {
         try {
             const { accessToken } = req.body;
-            
+
             if (!accessToken) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -52,9 +60,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.facebookLogin(accessToken);
-            
+
             res.status(200).json({
                 message: 'Facebook login successful',
                 data: result
@@ -63,14 +71,14 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * User login
      */
     async login(req: Request, res: Response): Promise<void> {
         try {
             const loginData: LoginRequest = req.body;
-            
+
             if (!loginData.email || !loginData.password) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -78,9 +86,15 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.login(loginData);
-            
+
+            res.cookie('accessToken', result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                sameSite: 'none', // Prevent CSRF attacks
+            });
+
             res.status(200).json({
                 message: 'Login successful',
                 data: result
@@ -89,7 +103,7 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * User logout (client-side token removal)
      */
@@ -99,14 +113,14 @@ export class AuthController {
             data: { message: 'Token should be removed from client storage' }
         });
     }
-    
+
     /**
      * Refresh access token
      */
     async refreshToken(req: Request, res: Response): Promise<void> {
         try {
             const { refreshToken } = req.body;
-            
+
             if (!refreshToken) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -114,9 +128,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const result = await this.authService.refreshToken(refreshToken);
-            
+
             res.status(200).json({
                 message: 'Token refreshed successfully',
                 data: result
@@ -125,7 +139,7 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Get current user profile
      */
@@ -138,9 +152,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const user = await this.authService.getUserById(req.user.userId);
-            
+
             if (!user) {
                 res.status(404).json({
                     error: 'User not found',
@@ -148,7 +162,7 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             res.status(200).json({
                 message: 'Profile retrieved successfully',
                 data: { user }
@@ -157,7 +171,7 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Update user password
      */
@@ -170,9 +184,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const { currentPassword, newPassword } = req.body;
-            
+
             if (!currentPassword || !newPassword) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -180,9 +194,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             await this.authService.updatePassword(req.user.userId, currentPassword, newPassword);
-            
+
             res.status(200).json({
                 message: 'Password updated successfully'
             });
@@ -190,14 +204,14 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Get all users (admin only)
      */
     async getAllUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const users = await this.authService.getAllUsers();
-            
+
             res.status(200).json({
                 message: 'Users retrieved successfully',
                 data: { users, count: users.length }
@@ -206,14 +220,14 @@ export class AuthController {
             this.handleError(res, error);
         }
     }
-    
+
     /**
      * Delete user (admin only)
      */
     async deleteUser(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const { userId } = req.params;
-            
+
             if (!userId) {
                 res.status(400).json({
                     error: 'Validation failed',
@@ -221,9 +235,9 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             const deleted = await this.authService.deleteUser(userId);
-            
+
             if (!deleted) {
                 res.status(404).json({
                     error: 'User not found',
@@ -231,9 +245,36 @@ export class AuthController {
                 });
                 return;
             }
-            
+
             res.status(200).json({
                 message: 'User deleted successfully'
+            });
+        } catch (error) {
+            this.handleError(res, error);
+        }
+    }
+
+    async onBoardUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+
+            if (!req.user) {
+                res.status(401).json({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated'
+                });
+                return;
+            }
+
+            // Expect onboarding data in request body
+            const data: IOrganization = req.body;
+
+            console.log('Onboarding data received:', data);
+            // Save onboarding data in DB (implement this in your AuthService)
+            const onboarded = await this.authService.onBoardUser(req.user.userId, data);
+
+            res.status(200).json({
+                message: 'User onboarded successfully',
+                data: { onboarded }
             });
         } catch (error) {
             this.handleError(res, error);
@@ -254,7 +295,7 @@ export class AuthController {
             }
 
             const token = await this.authService.getFacebookToken(req.user.userId);
-            
+
             if (!token) {
                 res.status(404).json({
                     error: 'Token not found',
@@ -286,7 +327,7 @@ export class AuthController {
             }
 
             const hasToken = await this.authService.hasFacebookToken(req.user.userId);
-            
+
             res.status(200).json({
                 message: 'Facebook token status retrieved',
                 data: { hasToken }
@@ -310,7 +351,7 @@ export class AuthController {
             }
 
             const removed = await this.authService.removeFacebookToken(req.user.userId);
-            
+
             res.status(200).json({
                 message: removed ? 'Facebook token removed successfully' : 'No Facebook token to remove',
                 data: { removed }
@@ -334,6 +375,53 @@ export class AuthController {
             res.status(500).json({
                 error: 'Server error',
                 message: error instanceof Error ? error.message : 'Unknown error occurred'
+            });
+        }
+    }
+
+    async getHighQualityLogo(req: Request, res: Response): Promise<void> {
+        try {
+            let { url } = req.query;
+
+            if (!url || typeof url !== 'string') {
+                res.status(400).json({
+                    error: 'Validation failed',
+                    message: 'URL is required'
+                });
+                return;
+            }
+
+            // Prepend protocol if missing
+            if (!/^https?:\/\//i.test(url)) {
+                url = `https://${url}`;
+            }
+
+            const response = await axios.get(url, { timeout: 5000 });
+            const html = response.data;
+            const $ = load(html);
+
+            const ogImage = $('meta[property="og:image"]').attr("content");
+            const appleTouch = $('link[rel="apple-touch-icon"]').attr("href");
+            const icon = $('link[rel="icon"]').attr("href");
+
+            const base = new URL(url);
+
+            const resolve = (src: string | undefined) =>
+                src && !src.startsWith("http") ? `${base.origin}${src}` : src;
+
+            res.status(200).json({
+                message: 'High quality logo retrieved successfully',
+                data: {
+                    ogImage: resolve(ogImage),
+                    appleTouch: resolve(appleTouch),
+                    icon: resolve(icon)
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching high quality logo:', error);
+            res.status(500).json({
+                error: 'Server error',
+                message: 'Failed to fetch high quality logo'
             });
         }
     }

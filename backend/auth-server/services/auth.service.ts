@@ -11,15 +11,19 @@ import {
   AuthResponse,
   FacebookTokenCache
 } from '../../common';
+import { IOrganization } from '../../common/models/Organization';
+import { OrganizationRepository } from '../../common/repositories/OrganizationRepsitory';
 import { User } from '../../common/types/auth.types';
 
 export class AuthService {
   private userRepository: UserRepository;
   private facebookTokenCache: FacebookTokenCache;
+  private organizationRepository: OrganizationRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
     this.facebookTokenCache = new FacebookTokenCache();
+    this.organizationRepository = new OrganizationRepository();
   }
   
   /**
@@ -112,6 +116,7 @@ export class AuthService {
         adsAccountId: adsAccountId || undefined
       });
     } else {
+      
       // Update existing user's ads account ID if they don't have one and we found one
       if (!user.adsAccountId && adsAccountId) {
         await this.userRepository.updateAdsAccountId(user._id, adsAccountId);
@@ -262,6 +267,20 @@ export class AuthService {
    */
   async getAllUsers(): Promise<Omit<User, 'password'>[]> {
     return await this.userRepository.getAllUsersWithoutPassword();
+  }
+
+  async onBoardUser(userId: string, data: Partial<IOrganization>) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    // Upsert organization for the user
+    const organization = await this.organizationRepository.create({
+      userId: user._id,
+      ...data
+    });
+
+    return organization;
   }
   
   /**

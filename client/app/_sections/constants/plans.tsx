@@ -1,0 +1,40 @@
+export const plans = [
+  {
+    name: "Starter",
+    price: "$29",
+    period: "/month",
+    description: "Perfect for small businesses just getting started",
+    features: ["Up to 3 campaigns", "Basic AI optimization", "Email support", "Dashboard analytics"],
+    popular: false,
+  },
+  {
+    name: "Professional",
+    price: "$79",
+    period: "/month",
+    description: "Best for growing businesses with multiple campaigns",
+    features: [
+      "Unlimited campaigns",
+      "Advanced AI optimization",
+      "Priority support",
+      "Advanced analytics",
+      "A/B testing",
+      "Custom audiences",
+    ],
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "$199",
+    period: "/month",
+    description: "For agencies and large businesses",
+    features: [
+      "Everything in Professional",
+      "White-label solution",
+      "Dedicated account manager",
+      "Custom integrations",
+      "Advanced reporting",
+      "24/7 phone support",
+    ],
+    popular: false,
+  },
+]

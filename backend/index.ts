@@ -7,6 +7,7 @@ import adSetRoutes from './ads-server/routes/adsets.routes';
 import creativeRoutes from './ads-server/routes/creative.routes';
 import adRoutes from './ads-server/routes/ad.routes';
 import geminiRoutes from './ads-server/routes/gemini.routes';
+import designRoutes from './design-server/routes/design.routes';
 import { AuthService } from './auth-server/services/auth.service';
 import { AuthMiddleware } from './auth-server/middleware/auth.middleware';
 import { DatabaseConnection, config, RedisCacheService } from './common';
@@ -16,9 +17,14 @@ dotenv.config();
 
 const app = express();
 const PORT = config.server.port;
+const allowedOrigin = config.allowedOrigin || 'http://localhost:3000';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -59,12 +65,12 @@ app.get('/api/health', async (req: Request, res: Response) => {
 // Authentication routes
 app.use('/api/auth', authRoutes);
 
-// Campaign routes (protected)
 app.use('/api/campaigns', AuthMiddleware.authenticateToken, campaignRoutes);
 app.use('/api/adsets', AuthMiddleware.authenticateToken, adSetRoutes);
 app.use('/api/creatives', AuthMiddleware.authenticateToken, creativeRoutes);
 app.use('/api/ads', AuthMiddleware.authenticateToken, adRoutes);
 app.use('/api/gemini', AuthMiddleware.authenticateToken, geminiRoutes);
+app.use('/api/designs', AuthMiddleware.authenticateToken, designRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

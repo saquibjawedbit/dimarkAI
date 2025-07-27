@@ -1,7 +1,10 @@
 import express from 'express';
 import { GeminiController } from '../controllers/gemini.controller';
+import { AuthMiddleware } from '../../auth-server/middleware/auth.middleware';
+
 
 const router = express.Router();
+router.use(AuthMiddleware.authenticateToken);
 const geminiController = new GeminiController();
 
 /**
